@@ -1391,6 +1391,11 @@ a {
 .model-table td { color: #606266; }
 .model-table tr:last-child td { border-bottom: 0; }
 .table-note { color: #909399 !important; font-size: 13px !important; }
+.article-visuals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 26px 0 30px; }
+.article-visuals figure { margin: 0; overflow: hidden; border: 1px solid var(--el-border); border-radius: 8px; background: #fff; }
+.article-visuals img { display: block; width: 100%; height: 132px; object-fit: cover; }
+.article-visuals figcaption { padding: 10px 12px; color: #909399; font-size: 12px; line-height: 1.5; }
+@media (max-width: 700px) { .article-visuals { grid-template-columns: 1fr; } .article-visuals img { height: 170px; } }
 
 @media (max-width: 700px) {
   .site-header-inner { padding: 0 16px; }
