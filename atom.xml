@@ -5,9 +5,15 @@
   <updated>2024-08-04T08:00:00Z</updated>
   <link rel="alternate" href="https://hy123-pixel.github.io/" />
   <link rel="self" href="https://hy123-pixel.github.io/atom.xml" />
-  <subtitle>记录大模型、RAG、Prompt 与 Agent 实践。</subtitle>
+  <subtitle>记录大模型、RAG、Prompt、Agent、MCP 与 Skill 实践。</subtitle>
   <entry><title>从 0 开始理解大语言模型</title><id>https://hy123-pixel.github.io/ai-llm/</id><link href="https://hy123-pixel.github.io/ai-llm/" /><updated>2024-08-04T08:00:00Z</updated><summary>从 Token、Transformer 到推理，建立对 LLM 的完整认知。</summary></entry>
   <entry><title>RAG 不是魔法：检索增强生成的工程实践</title><id>https://hy123-pixel.github.io/ai-rag/</id><link href="https://hy123-pixel.github.io/ai-rag/" /><updated>2024-08-01T08:00:00Z</updated><summary>拆解一个可靠知识库问答系统的检索链路。</summary></entry>
   <entry><title>Prompt 工程：让模型稳定输出</title><id>https://hy123-pixel.github.io/ai-prompt/</id><link href="https://hy123-pixel.github.io/ai-prompt/" /><updated>2024-07-28T08:00:00Z</updated><summary>结构化提示词、少样本示例与输出约束。</summary></entry>
   <entry><title>AI Agent 的最小闭环</title><id>https://hy123-pixel.github.io/ai-agent/</id><link href="https://hy123-pixel.github.io/ai-agent/" /><updated>2024-07-22T08:00:00Z</updated><summary>理解 Agent 如何感知、规划、调用工具并验证结果。</summary></entry>
+  <entry><title>第一次使用 AI，先理解这 7 件事</title><id>https://hy123-pixel.github.io/ai-start/</id><link href="https://hy123-pixel.github.io/ai-start/" /><updated>2024-08-06T08:00:00Z</updated><summary>从豆包和日常聊天出发，建立 AI 使用方法。</summary></entry>
+  <entry><title>10 个普通人每天都能用到的 AI 场景</title><id>https://hy123-pixel.github.io/ai-scenes/</id><link href="https://hy123-pixel.github.io/ai-scenes/" /><updated>2024-08-05T08:00:00Z</updated><summary>让重复的小事少一点卡顿。</summary></entry>
+  <entry><title>AI 应用不是 Demo：如何建立评估体系</title><id>https://hy123-pixel.github.io/ai-eval/</id><link href="https://hy123-pixel.github.io/ai-eval/" /><updated>2024-08-03T08:00:00Z</updated><summary>从离线数据集到线上反馈，让 AI 迭代有依据。</summary></entry>
+  <entry><title>让 AI 真正做事：工具调用的设计方法</title><id>https://hy123-pixel.github.io/ai-tools/</id><link href="https://hy123-pixel.github.io/ai-tools/" /><updated>2024-08-02T08:00:00Z</updated><summary>理解函数调用、权限边界与执行闭环。</summary></entry>
+  <entry><title>MCP 是什么：给 AI 一套标准化工具接口</title><id>https://hy123-pixel.github.io/ai-mcp/</id><link href="https://hy123-pixel.github.io/ai-mcp/" /><updated>2024-08-10T08:00:00Z</updated><summary>让 AI 用统一方式发现和连接外部工具。</summary></entry>
+  <entry><title>AI Skill：把经验变成可复用的工作能力</title><id>https://hy123-pixel.github.io/ai-skill/</id><link href="https://hy123-pixel.github.io/ai-skill/" /><updated>2024-08-09T08:00:00Z</updated><summary>把 Prompt、流程和验收标准沉淀成能力。</summary></entry>
 </feed>

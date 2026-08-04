@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="hy123-pixel 的 AI 技术博客，记录大模型、RAG、Prompt 与 Agent 实践。">
+    <meta name="description" content="hy123-pixel 的 AI 技术博客，记录大模型、RAG、Prompt、Agent、MCP 与 Skill 实践。">
     <title>hy123-pixel · AI 技术札记</title>
     <link rel="icon" href="/favicon.ico">
     <link rel="stylesheet" href="/styles/main.css">
@@ -26,17 +26,29 @@
         <div class="hero-copy">
           <p class="eyebrow">AI · BUILD · THINK</p>
           <h1>把复杂的 AI，<br><span>讲得清楚一点。</span></h1>
-          <p class="hero-text">这里是 hy123-pixel 的技术札记，记录大语言模型、RAG、Prompt 和 Agent 的实践与思考。</p>
+          <p class="hero-text">这里是 hy123-pixel 的技术札记，记录大语言模型、RAG、Prompt、Agent、MCP 和 Skill 的实践与思考。</p>
           <div class="hero-actions"><a class="el-button el-button--primary" href="/ai-llm/">从大模型开始</a><a class="el-button" href="/about/">了解本站</a></div>
         </div>
         <div class="hero-orbit" aria-hidden="true"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="orbit-core">✦</div></div>
       </section>
+      <section class="stats-row" aria-label="站点概览">
+        <div class="stat-item"><strong>08</strong><span>AI 专题文章</span></div>
+        <div class="stat-item"><strong>02</strong><span>工程实践方向</span></div>
+        <div class="stat-item"><strong>100%</strong><span>本地静态资源</span></div>
+        <div class="stat-item"><strong>∞</strong><span>持续学习中</span></div>
+      </section>
+      <section class="beginner-banner el-card"><div><p class="eyebrow">START HERE · AI 入门专栏</p><h2>如果你刚开始用 AI，从这里慢慢来。</h2><p>不讲复杂术语，从豆包、聊天和日常工作出发，建立自己的 AI 使用方法。</p></div><a class="el-button el-button--primary" href="/ai-start/">阅读入门篇</a></section>
+      <section class="advanced-strip"><div><p class="eyebrow">ADVANCED APPLICATIONS</p><h2>从会聊天，到能交付。</h2><p>深入 Skill、MCP、RAG、工具调用和评估，让 AI 应用真正进入工作流。</p></div><div class="advanced-links"><a href="/ai-mcp/"><span>MCP 协议</span><b>→</b></a><a href="/ai-skill/"><span>Skill 能力</span><b>→</b></a></div></section>
       <div class="section-heading"><div><p class="eyebrow">LATEST NOTES</p><h2>最近更新</h2></div><a href="/archives/" class="el-link">查看全部 →</a></div>
       <section class="post-grid">
-        <article class="el-card post-card post-card-featured"><div class="post-topline"><span class="el-tag el-tag--primary">大模型</span><time>2024-08-04</time></div><h3><a href="/ai-llm/">从 0 开始理解大语言模型</a></h3><p>不讲玄学，从 Token、Transformer 到推理，一次建立对 LLM 的完整认知。</p><a class="read-more" href="/ai-llm/">阅读文章 <span>→</span></a></article>
-        <article class="el-card post-card"><div class="post-topline"><span class="el-tag el-tag--success">RAG</span><time>2024-08-01</time></div><h3><a href="/ai-rag/">RAG 不是魔法：检索增强生成的工程实践</a></h3><p>从切分、召回、重排到评估，拆解一个可靠知识库问答系统。</p><a class="read-more" href="/ai-rag/">阅读文章 <span>→</span></a></article>
-        <article class="el-card post-card"><div class="post-topline"><span class="el-tag el-tag--warning">Prompt</span><time>2024-07-28</time></div><h3><a href="/ai-prompt/">Prompt 工程：让模型稳定输出</a></h3><p>结构化提示词、少样本示例与输出约束，构成可复用的提示词方法论。</p><a class="read-more" href="/ai-prompt/">阅读文章 <span>→</span></a></article>
-        <article class="el-card post-card"><div class="post-topline"><span class="el-tag">Agent</span><time>2024-07-22</time></div><h3><a href="/ai-agent/">AI Agent 的最小闭环</a></h3><p>理解 Agent 如何感知、规划、调用工具并验证结果，避免把它做成聊天机器人。</p><a class="read-more" href="/ai-agent/">阅读文章 <span>→</span></a></article>
+        <article class="el-card post-card post-card-featured"><div class="post-cover cover-llm"><span>LLM</span></div><div class="post-topline"><span class="el-tag el-tag--primary">大模型</span><time>2024-08-04</time></div><h3><a href="/ai-llm/">从 0 开始理解大语言模型</a></h3><p>不讲玄学，从 Token、Transformer 到推理，一次建立对 LLM 的完整认知。</p><a class="read-more" href="/ai-llm/">阅读文章 <span>→</span></a></article>
+        <article class="el-card post-card"><div class="post-cover cover-rag"><span>RAG</span></div><div class="post-topline"><span class="el-tag el-tag--success">RAG</span><time>2024-08-01</time></div><h3><a href="/ai-rag/">RAG 不是魔法：检索增强生成的工程实践</a></h3><p>从切分、召回、重排到评估，拆解一个可靠知识库问答系统。</p><a class="read-more" href="/ai-rag/">阅读文章 <span>→</span></a></article>
+        <article class="el-card post-card"><div class="post-cover cover-prompt"><span>PROMPT</span></div><div class="post-topline"><span class="el-tag el-tag--warning">Prompt</span><time>2024-07-28</time></div><h3><a href="/ai-prompt/">Prompt 工程：让模型稳定输出</a></h3><p>结构化提示词、少样本示例与输出约束，构成可复用的提示词方法论。</p><a class="read-more" href="/ai-prompt/">阅读文章 <span>→</span></a></article>
+        <article class="el-card post-card"><div class="post-cover cover-agent"><span>AGENT</span></div><div class="post-topline"><span class="el-tag">Agent</span><time>2024-07-22</time></div><h3><a href="/ai-agent/">AI Agent 的最小闭环</a></h3><p>理解 Agent 如何感知、规划、调用工具并验证结果，避免把它做成聊天机器人。</p><a class="read-more" href="/ai-agent/">阅读文章 <span>→</span></a></article>
+      </section>
+      <section class="explore-layout">
+        <div class="explore-card el-card"><p class="eyebrow">LEARNING PATH</p><h2>一条 AI 实践路线</h2><div class="path-step"><span>01</span><div><strong>理解模型</strong><small>Token · Transformer · 推理</small></div></div><div class="path-step"><span>02</span><div><strong>连接知识</strong><small>Embedding · RAG · 评估</small></div></div><div class="path-step"><span>03</span><div><strong>让它行动</strong><small>Tool calling · Agent · 反馈</small></div></div></div>
+        <div class="quote-card el-card"><span class="quote-mark">“</span><p>真正有用的 AI，不是回答得像人，而是能在具体工作里减少一次重复和一次误判。</p><small>— hy123-pixel</small></div>
       </section>
       <section class="quick-panel el-card"><div><p class="eyebrow">A SMALL REMINDER</p><h2>先把问题定义清楚，再让模型开始工作。</h2></div><a class="el-button el-button--primary is-round" href="/tags/">浏览 AI 标签</a></section>
     </main>
