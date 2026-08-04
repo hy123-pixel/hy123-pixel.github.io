@@ -1371,6 +1371,7 @@ a {
 .cover-coding { background: linear-gradient(135deg, #626fbd, #8aa7e8 50%, #edb4c3); }
 .cover-local { background: linear-gradient(135deg, #75a990, #b4d19c 50%, #e7c894); }
 .cover-governance { background: linear-gradient(135deg, #d88e9f, #bd88c9 48%, #849bd8); }
+.cover-models { background: linear-gradient(135deg, #6f7fe2, #9c8be7 48%, #dca1c5); }
 .article-cover { height: 190px; margin: -44px -62px 34px; border-radius: 7px 7px 0 0; }
 .article-cover span { position: absolute; bottom: 24px; left: 30px; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 700; letter-spacing: .14em; }
 .article-cover::before { top: -70px; right: 16%; width: 250px; height: 250px; border-width: 2px; }
@@ -1383,6 +1384,13 @@ a {
 .el-tag--success { border-color: #cce6d8; background: #f0faf4; color: #5baf86; }
 .el-tag--warning { border-color: #f2d3c7; background: #fff5f1; color: #d78670; }
 .el-tag--danger { border-color: #f0c8d2; background: #fff1f4; color: #c56d87; }
+.table-wrap { overflow-x: auto; margin: 24px 0 8px; border: 1px solid var(--el-border); border-radius: 7px; }
+.model-table { width: 100%; min-width: 760px; border-collapse: collapse; background: #fff; font-size: 14px; }
+.model-table th, .model-table td { padding: 14px 13px; border-bottom: 1px solid var(--el-border); text-align: left; vertical-align: top; line-height: 1.65; }
+.model-table th { background: #f7f6ff; color: var(--el-text); font-weight: 700; white-space: nowrap; }
+.model-table td { color: #606266; }
+.model-table tr:last-child td { border-bottom: 0; }
+.table-note { color: #909399 !important; font-size: 13px !important; }
 
 @media (max-width: 700px) {
   .site-header-inner { padding: 0 16px; }

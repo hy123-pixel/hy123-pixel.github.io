@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://hy123-pixel.github.io</id>
   <title>hy123-pixel · AI 技术札记</title>
-  <updated>2024-08-20T08:00:00Z</updated>
+  <updated>2024-08-22T08:00:00Z</updated>
   <link rel="alternate" href="https://hy123-pixel.github.io/" />
   <link rel="self" href="https://hy123-pixel.github.io/atom.xml" />
   <subtitle>记录大模型、RAG、Prompt、Agent、MCP 与 Skill 实践。</subtitle>
@@ -21,4 +21,5 @@
   <entry><title>AI 编程：从补全代码到协作式开发</title><id>https://hy123-pixel.github.io/ai-coding/</id><link href="https://hy123-pixel.github.io/ai-coding/" /><updated>2024-08-16T08:00:00Z</updated><summary>建立可复用的 AI 编程工作流，让写代码更快也更稳。</summary></entry>
   <entry><title>本地模型还有意义吗：开源与端侧 AI 的机会</title><id>https://hy123-pixel.github.io/ai-local/</id><link href="https://hy123-pixel.github.io/ai-local/" /><updated>2024-08-14T08:00:00Z</updated><summary>从隐私、成本和可控性出发，选择适合自己的模型路线。</summary></entry>
   <entry><title>AI 应用上线前：隐私、安全与治理清单</title><id>https://hy123-pixel.github.io/ai-governance/</id><link href="https://hy123-pixel.github.io/ai-governance/" /><updated>2024-08-12T08:00:00Z</updated><summary>把权限、数据、审核和回滚设计进 AI 产品的第一天。</summary></entry>
+  <entry><title>主流 AI 模型怎么选：能力、价格与工作场景对比</title><id>https://hy123-pixel.github.io/ai-models/</id><link href="https://hy123-pixel.github.io/ai-models/" /><updated>2024-08-22T08:00:00Z</updated><summary>对比 GPT、Claude、Gemini、DeepSeek，找到适合自己工作的模型。</summary></entry>
 </feed>
