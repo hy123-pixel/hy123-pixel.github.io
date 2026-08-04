@@ -1366,6 +1366,11 @@ a {
 .cover-rag { background: linear-gradient(135deg, #b8d9cc, #78b9c5 52%, #a9a1dc); }
 .cover-prompt { background: linear-gradient(135deg, #f7c9b8, #eaa4ae 48%, #b9a8db); }
 .cover-agent { background: linear-gradient(135deg, #f6d59d, #ecb0a2 48%, #9ab9df); }
+.cover-future { background: linear-gradient(135deg, #8076d9, #a88bdd 48%, #efb6b8); }
+.cover-multimodal { background: linear-gradient(135deg, #78b8d4, #83d0c0 52%, #c9b5e8); }
+.cover-coding { background: linear-gradient(135deg, #626fbd, #8aa7e8 50%, #edb4c3); }
+.cover-local { background: linear-gradient(135deg, #75a990, #b4d19c 50%, #e7c894); }
+.cover-governance { background: linear-gradient(135deg, #d88e9f, #bd88c9 48%, #849bd8); }
 .article-cover { height: 190px; margin: -44px -62px 34px; border-radius: 7px 7px 0 0; }
 .article-cover span { position: absolute; bottom: 24px; left: 30px; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 700; letter-spacing: .14em; }
 .article-cover::before { top: -70px; right: 16%; width: 250px; height: 250px; border-width: 2px; }
@@ -1377,6 +1382,7 @@ a {
 .el-tag--primary, .el-tag { border-color: #d9d9fb; background: #f2f1ff; color: #6571d9; }
 .el-tag--success { border-color: #cce6d8; background: #f0faf4; color: #5baf86; }
 .el-tag--warning { border-color: #f2d3c7; background: #fff5f1; color: #d78670; }
+.el-tag--danger { border-color: #f0c8d2; background: #fff1f4; color: #c56d87; }
 
 @media (max-width: 700px) {
   .site-header-inner { padding: 0 16px; }
