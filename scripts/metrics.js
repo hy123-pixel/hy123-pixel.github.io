@@ -17,13 +17,13 @@
     }).then(function (response) { if (!response.ok) throw new Error('write ' + response.status); return response.json(); });
   }
   function render(record) {
-    var total = document.getElementById('siteVisitCount');
-    var days = document.getElementById('siteRunDays');
-    if (total) total.textContent = Number(record.totalVisits || 0).toLocaleString('zh-CN');
-    if (days) {
+    document.querySelectorAll('[data-metric-total]').forEach(function (node) {
+      node.textContent = Number(record.totalVisits || 0).toLocaleString('zh-CN');
+    });
+    document.querySelectorAll('[data-metric-days]').forEach(function (node) {
       var start = new Date(record.startedAt || '2026-08-04T00:00:00+08:00');
-      days.textContent = Math.max(1, Math.floor((Date.now() - start.getTime()) / 86400000) + 1);
-    }
+      node.textContent = Math.max(1, Math.floor((Date.now() - start.getTime()) / 86400000) + 1);
+    });
     document.querySelectorAll('[data-metric-tool]').forEach(function (node) {
       var key = node.getAttribute('data-metric-tool');
       node.textContent = Number((record.tools || {})[key] || 0).toLocaleString('zh-CN');
