@@ -1429,6 +1429,9 @@ a {
 .stats-mini strong { color: #6872d8; font-size: 20px; }
 .stats-mini span { margin-top: 3px; color: #9695a5; font-size: 12px; }
 .tool-note { margin-top: 20px; padding: 18px 22px; color: #777788; font-size: 13px; line-height: 1.8; }
+.tools-live-stats { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 20px; color: #74748a; font-size: 12px; }
+.tools-live-stats span { padding: 6px 9px; border: 1px solid #e8e6f4; border-radius: 999px; background: rgba(255,255,255,.72); }
+.tools-live-stats strong { color: #6872d8; font-variant-numeric: tabular-nums; }
 .article-visuals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 26px 0 30px; }
 .article-visuals figure { margin: 0; overflow: hidden; border: 1px solid var(--el-border); border-radius: 8px; background: #fff; }
 .article-visuals img { display: block; width: 100%; height: 132px; object-fit: cover; }
