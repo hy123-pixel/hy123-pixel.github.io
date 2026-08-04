@@ -56,7 +56,7 @@
     baseInput: 'base64', baseEncode: 'base64', baseDecode: 'base64',
     urlInput: 'url', urlEncode: 'url', urlDecode: 'url',
     timestampInput: 'timestamp', timestampToDate: 'timestamp', dateToTimestamp: 'timestamp',
-    textInput: 'text'
+    textInput: 'text', imageInput: 'image', randomImageRefresh: 'randomImage'
   };
   Object.keys(elementTools).forEach(function (id) {
     var node = document.getElementById(id);
