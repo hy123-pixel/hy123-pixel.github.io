@@ -1347,6 +1347,7 @@ a {
 .beginner-banner { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 18px; padding: 23px 28px; border-color: #e0def7; background: linear-gradient(100deg, #fff, #faf8ff); }
 .beginner-banner h2 { margin: 0 0 5px; color: var(--el-text); font-size: 21px; letter-spacing: -.03em; }
 .beginner-banner p:not(.eyebrow) { margin: 0; color: var(--el-muted); font-size: 14px; }
+.vapor-banner { border-color: #cfe8ff; background: linear-gradient(100deg, #fff, #f4fbff); }
 .advanced-strip { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 38px; padding: 26px 29px; border-radius: 8px; background: #343446; color: #fff; box-shadow: 0 8px 22px rgba(52,52,70,.14); }
 .advanced-strip .eyebrow { color: #b9b4f5; }
 .advanced-strip h2 { margin: 0 0 5px; font-size: 22px; letter-spacing: -.03em; }
