@@ -1358,26 +1358,10 @@ a {
 .scene-list b { display: block; margin-bottom: 5px; color: #a0cfff; font-size: 11px; letter-spacing: .12em; }
 .scene-list strong { color: var(--el-text); font-size: 15px; }
 .scene-list p { margin: 4px 0 0; font-size: 14px !important; line-height: 1.65 !important; }
-.post-cover, .article-cover { position: relative; overflow: hidden; background: #eef2ff; }
-.post-cover { height: 104px; margin: -24px -24px 20px; border-radius: 7px 7px 0 0; }
-.post-cover::before, .article-cover::before { position: absolute; width: 120px; height: 120px; border: 1px solid rgba(255,255,255,.65); border-radius: 50%; content: ''; }
-.post-cover::before { top: -48px; right: 12%; }
-.post-cover::after, .article-cover::after { position: absolute; right: 16%; bottom: -35px; width: 120px; height: 80px; border-radius: 55% 45% 0 0; background: rgba(255,255,255,.32); content: ''; transform: rotate(-18deg); }
-.post-cover span { position: absolute; right: 22px; bottom: 18px; color: rgba(255,255,255,.9); font-size: 11px; font-weight: 700; letter-spacing: .16em; }
-.cover-llm { background: linear-gradient(135deg, #aebaff, #7589ee 48%, #8ccbd0); }
-.cover-rag { background: linear-gradient(135deg, #b8d9cc, #78b9c5 52%, #a9a1dc); }
-.cover-prompt { background: linear-gradient(135deg, #f7c9b8, #eaa4ae 48%, #b9a8db); }
-.cover-agent { background: linear-gradient(135deg, #f6d59d, #ecb0a2 48%, #9ab9df); }
-.cover-future { background: linear-gradient(135deg, #8076d9, #a88bdd 48%, #efb6b8); }
-.cover-multimodal { background: linear-gradient(135deg, #78b8d4, #83d0c0 52%, #c9b5e8); }
-.cover-coding { background: linear-gradient(135deg, #626fbd, #8aa7e8 50%, #edb4c3); }
-.cover-local { background: linear-gradient(135deg, #75a990, #b4d19c 50%, #e7c894); }
-.cover-governance { background: linear-gradient(135deg, #d88e9f, #bd88c9 48%, #849bd8); }
-.cover-models { background: linear-gradient(135deg, #6f7fe2, #9c8be7 48%, #dca1c5); }
-.article-cover { height: 190px; margin: -44px -62px 34px; border-radius: 7px 7px 0 0; }
-.article-cover span { position: absolute; bottom: 24px; left: 30px; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 700; letter-spacing: .14em; }
-.article-cover::before { top: -70px; right: 16%; width: 250px; height: 250px; border-width: 2px; }
-.article-cover::after { right: 25%; bottom: -55px; width: 250px; height: 140px; }
+.post-cover, .article-cover { position: relative; overflow: hidden; background: #eef2ff; border-radius: 7px 7px 0 0; }
+.post-cover { height: 104px; margin: -24px -24px 20px; }
+.article-cover { height: 190px; margin: -44px -62px 34px; }
+.cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .element-theme { --el-blue: #6d7cf4; --el-blue-dark: #5968d9; --el-text: #343446; --el-border: #ececf3; background: #faf9fc; }
 .brand-mark { background: linear-gradient(135deg, #6d7cf4, #a58be8); box-shadow: 0 5px 12px rgba(109,124,244,.25); }
 .hero { background: linear-gradient(120deg, #fff 0%, #f8f5ff 56%, #f3fbfb 100%); }
