@@ -1,4 +1,8 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+<style>
+  .software-modal-imgwrap { margin: 0 0 14px; border-radius: 10px; overflow: hidden; background:#f7f8fa; text-align:center; }
+  .software-modal-img { max-width: 100%; height: auto; display:block; margin: 0 auto; }
+</style>
 </head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-list" id="softwareList" aria-label="推荐软件列表"></section></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
 
 <div id="softwareModal" class="software-modal" role="dialog" aria-modal="true" aria-labelledby="swModalTitle" hidden>
@@ -97,6 +101,22 @@
       platform: "Android / iOS / Windows / macOS",
       site: "https://www.wakdev.com/en/",
       download: ""
+    },
+    {
+      name: "Vapor 大型教程",
+      icon: "/assets/software/vapor-icon.png",
+      color: "#6d7cf4",
+      text: "#ffffff",
+      tag: "教程 · Swift 服务端",
+      desc: "一份面向中文开发者、手把手的 Vapor 大型教程。Vapor 是基于 SwiftNIO、用纯 Swift 实现的开源服务端框架，可构建后端服务与 Web 页面，自带 Leaf 模板与 Fluent ORM。",
+      detail: "Vapor 大型教程脱胎于《Server Side Swift With Vapor》一书与社区经典 Mega-Tutorial，以「看教程写代码、看文档写代码、看源码写代码」的实操风格，从环境配置一路讲到路由、数据库、认证与部署。它主打零基础上手服务端 Swift，让 iOS 开发者能用同一门语言包揽客户端与服务端全栈，避免在不同语言间反复切换。",
+      version: "持续更新",
+      size: "在线阅读",
+      rating: "4.8",
+      platform: "Web（docsify）",
+      site: "https://vapor.jokerhub.cn/",
+      download: "",
+      image: "/assets/software/vapor-book.png"
     }
   ];
 
@@ -153,7 +173,8 @@
     document.getElementById("swModalTitle").textContent = s.name;
     document.getElementById("swModalTag").textContent = s.tag || "";
     document.getElementById("swModalDesc").textContent = s.desc || "";
-    document.getElementById("swModalDetail").innerHTML = '<p>' + esc(s.detail || "暂无详细介绍。") + '</p>';
+    var imgHtml = s.image ? '<div class="software-modal-imgwrap"><img class="software-modal-img" src="' + esc(s.image) + '" alt="' + esc(s.name) + ' 配图" loading="lazy"></div>' : '';
+    document.getElementById("swModalDetail").innerHTML = imgHtml + '<p>' + esc(s.detail || "暂无详细介绍。") + '</p>';
 
     const stats = [];
     if (s.version) stats.push('<div><span>版本</span><strong>' + esc(s.version) + '</strong></div>');
