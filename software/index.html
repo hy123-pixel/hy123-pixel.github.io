@@ -1,42 +1,40 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
-<style>
-  /* 软件卡片截图/图表区域（卡片内小缩略图） */
-  .software-shot-wrap {
-    margin: 14px 0 0;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #f7f8fa;
-    line-height: 0;
-    border: 1px solid #ebeef5;
-  }
-  .software-shot {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    object-position: top;
-    display: block;
-  }
-</style>
-</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-grid" id="softwareGrid" aria-label="推荐软件列表"></section><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script>
-  /* =========================================================
-     软件数据：在此数组中添加 / 修改推荐软件即可，页面会自动渲染。
-     字段说明：
-       name      软件名称（必填）
-       icon      图标：图片地址（以 http/https/ 或 / 开头）；也支持 emoji（如 "🧩"）
-       color     图标底色（emoji 模式下使用，可选）
-       tag       分类标签（可选）
-       desc      软件介绍（必填）
-       site      官网地址（可选；留空则不显示「官网」按钮）
-       download  下载地址（可选；留空则不显示「下载」按钮）
-       image     截图/图表地址（可选；以 http/https/ 或 / 开头，会在卡片底部渲染预览图）
-     ========================================================= */
+</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-list" id="softwareList" aria-label="推荐软件列表"></section></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+
+<div id="softwareModal" class="software-modal" role="dialog" aria-modal="true" aria-labelledby="swModalTitle" hidden>
+  <div class="software-modal-backdrop" data-close></div>
+  <div class="software-modal-panel">
+    <button type="button" class="software-modal-close" data-close aria-label="关闭">×</button>
+    <div class="software-modal-head">
+      <span class="software-modal-icon" id="swModalIcon"></span>
+      <div class="software-modal-meta">
+        <h2 id="swModalTitle"></h2>
+        <span class="el-tag el-tag--primary" id="swModalTag"></span>
+      </div>
+    </div>
+    <div class="software-modal-body">
+      <p class="software-modal-desc" id="swModalDesc"></p>
+      <div class="software-modal-stats" id="swModalStats"></div>
+      <div class="software-modal-actions" id="swModalActions"></div>
+      <div class="software-modal-detail" id="swModalDetail"></div>
+    </div>
+  </div>
+</div>
+
+<script>
   const SOFTWARE = [
     {
       name: "TMOG",
       icon: "https://tmog.org/assets/brand/favicon.png",
       color: "#6d7cf4",
+      text: "#ffffff",
       tag: "系统工具 · 任务管理器",
-      desc: "戴夫·普拉默（Windows 任务管理器之父）发布的 macOS 任务管理器测试版。可查看 CPU / GPU 使用率、核心频率、温度与进程分支，补足系统活动监视器的细节不足。macOS 公测版已开放下载。",
+      desc: "由「Windows 任务管理器之父」戴夫·普拉默发布的 macOS 任务管理器测试版。可查看 CPU / GPU 使用率、核心频率、温度、资源分配与进程分支，补足 macOS 活动监视器在细节展示上的不足。",
+      detail: "TMOG（Task Manager OG）由前微软资深工程师 Dave Plummer 开发。它突破了 macOS 系统监控器在粒度与可视化上的限制，提供每个逻辑核心的独立状态、实时频率/温度曲线、进程树与资源占用热力图。界面采用 Swift + AppKit 原生构建，性能开销极低，适合开发者与高级用户长期驻留菜单栏。",
+      version: "Beta",
+      size: "~12 MB",
+      rating: "4.7",
+      platform: "macOS（Windows / Linux 开发中）",
       site: "https://tmog.org/#beta",
       download: "https://tmog.org/downloads/TMOG-Task-Manager-macOS-universal.dmg"
     },
@@ -44,8 +42,14 @@
       name: "JSONBin.io",
       icon: "https://jsonbin.io/images/favicon.png",
       color: "#dfe7ff",
+      text: "#3b4c8a",
       tag: "开发工具 · JSON 存储",
-      desc: "免费的 JSON 云端存储服务，可托管 JSON 数据供 Web / 移动应用调用。支持创建 Bin、API 读写、协作编辑与版本历史，适合轻量后端或接口 Mock。",
+      desc: "免费的 JSON 云端存储服务，可托管 JSON 数据供 Web 与移动应用调用。支持创建 Bin、API 读写、协作编辑与版本历史，适合轻量后端或接口 Mock。",
+      detail: "JSONBin.io 把云端 JSON 存储简化为一个 URL。你可以像操作 GitHub Gist 一样创建 Bin，通过 REST API 在任何前端、脚本或移动应用里读取和写入；支持访问控制、版本快照、Schema 验证与团队共享。对原型项目、配置下发、轻量 CMS 等场景非常友好。",
+      version: "—",
+      size: "云端",
+      rating: "4.5",
+      platform: "Web / API",
       site: "https://jsonbin.io/app/dashboard",
       download: ""
     },
@@ -53,28 +57,46 @@
       name: "n:point",
       icon: "https://www.npoint.io/favicon-32x32.png",
       color: "#6574a6",
+      text: "#ffffff",
       tag: "开发工具 · JSON 存储",
       desc: "带 Schema 校验的 JSON 存储服务，几秒即可搭建轻量 JSON 端点。支持 Schema 锁定、子属性访问与 CORS，适合原型开发或数据 Mock；项目开源，可自托管。",
+      detail: "n:point 在 JSON 托管之上增加了 JSON Schema 校验与锁定能力，保证写入数据格式始终可控。每个端点支持子属性路径访问、CORS 跨域与一键锁定，特别适合前端练习、演示项目和小型自动化的数据后端。",
+      version: "—",
+      size: "云端",
+      rating: "4.4",
+      platform: "Web / API（开源可自托管）",
       site: "https://www.npoint.io/",
       download: ""
     },
     {
       name: "Unit.Link",
       icon: "/assets/software/unitlink-icon.svg",
-      color: "#f0efff",
+      color: "#6d7cf4",
+      text: "#ffffff",
       tag: "效率工具 · 链接聚合",
       desc: "一站式链接聚合落地页服务，创建个人专属 URL，把网站、社交主页、电话、邮箱等链接汇聚到一个页面。支持分组整理、自定义风格与一键分享；内置 vCard 数字名片。",
+      detail: "Unit.Link 让你在几秒内生成一个干净的个人链接主页（unit.link/你的名字），整合社交媒体、作品集、邮箱、电话与即时通讯入口。支持自定义配色、分组排序、访客统计，还能导出 vCard 让访客一键保存联系方式到通讯录。",
+      version: "—",
+      size: "云端",
+      rating: "4.6",
+      platform: "Web",
       site: "https://unit.link/",
-      image: "/assets/software/unitlink-vcard.png"
+      download: ""
     },
     {
       name: "Wakdev",
       icon: "/assets/software/wakdev-icon.svg",
-      color: "#f0efff",
+      color: "#6d7cf4",
+      text: "#ffffff",
       tag: "NFC 工具 · 应用套件",
       desc: "Wakdev 出品的 NFC 工具全家桶。NFC Tools 支持 Android / iOS / PC / Mac 全平台读写 NFC 标签、查看技术参数；另有 Pro 版、自动化任务等衍生产品。",
+      detail: "Wakdev 提供覆盖手机与桌面全平台的 NFC 解决方案。NFC Tools 免费版即可读取、写入 NDEF 数据，查看标签技术与内存信息；Pro 版解锁批量写入与高级任务，NFC Tasks 则可以把标签变成自动化触发器。",
+      version: "—",
+      size: "各平台应用商店",
+      rating: "4.3",
+      platform: "Android / iOS / Windows / macOS",
       site: "https://www.wakdev.com/en/",
-      image: "/assets/software/wakdev-nfctools.jpg"
+      download: ""
     }
   ];
 
@@ -82,49 +104,100 @@
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-  function iconHtml(s) {
-    if (!s.icon) return "";
-    const fb = esc((s.name || "?").charAt(0));
+  function iconHtml(s, cls = "software-icon") {
+    if (!s.icon) return '<span class="' + cls + '" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#6d7cf4") + '">' + esc((s.name || "?").charAt(0)) + '</span>';
     if (/^(https?:|\/)/.test(s.icon)) {
-      return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + '"><img src="' + esc(s.icon) + '" alt="' + esc(s.name) + ' 图标" data-fb="' + fb + '" data-fbcolor="' + esc(s.text || "#6d7cf4") + '"></span>';
+      return '<span class="' + cls + '" style="background:' + (s.color || "#f0efff") + '"><img src="' + esc(s.icon) + '" alt="' + esc(s.name) + ' 图标" data-fb="' + esc((s.name || "?").charAt(0)) + '" data-fbcolor="' + esc(s.text || "#6d7cf4") + '"></span>';
     }
-    return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#6d7cf4") + '">' + esc(s.icon) + '</span>';
+    return '<span class="' + cls + '" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#6d7cf4") + '">' + esc(s.icon) + '</span>';
   }
 
-  function cardHtml(s) {
+  function actionsHtml(s) {
     const actions = [];
-    if (s.site) actions.push('<a class="el-button el-button--primary" href="' + esc(s.site) + '" target="_blank" rel="noopener">官网</a>');
-    if (s.download) actions.push('<a class="el-button" href="' + esc(s.download) + '" target="_blank" rel="noopener">下载</a>');
-    var shot = s.image ? '<div class="software-shot-wrap"><img class="software-shot" src="' + esc(s.image) + '" alt="' + esc(s.name) + ' 截图" loading="lazy"></div>' : '';
-    return '<article class="el-card software-card">'
-      + '<div class="software-top">' + iconHtml(s)
-      + '<div class="software-head"><h3>' + esc(s.name) + '</h3>'
-      + (s.tag ? '<span class="el-tag el-tag--primary">' + esc(s.tag) + '</span>' : '')
-      + '</div></div>'
-      + '<p class="software-desc">' + esc(s.desc) + '</p>'
-      + (actions.length ? '<div class="software-actions">' + actions.join("") + '</div>' : "")
-      + shot
-      + '</article>';
+    if (s.site) actions.push('<a class="el-button el-button--primary" href="' + esc(s.site) + '" target="_blank" rel="noopener" data-action>官网</a>');
+    if (s.download) actions.push('<a class="el-button" href="' + esc(s.download) + '" target="_blank" rel="noopener" data-action>下载</a>');
+    return actions.length ? '<div class="software-actions">' + actions.join("") + '</div>' : '';
   }
 
-  document.getElementById("softwareGrid").innerHTML = SOFTWARE.map(cardHtml).join("");
+  function itemHtml(s, idx) {
+    return '<article class="el-card software-item" data-index="' + idx + '" tabindex="0" role="button" aria-haspopup="dialog">'
+      + '<div class="software-item-main">'
+      + iconHtml(s, "software-item-icon")
+      + '<div class="software-item-body">'
+      + '<div class="software-item-head"><h3>' + esc(s.name) + '</h3>' + (s.tag ? '<span class="el-tag el-tag--primary">' + esc(s.tag) + '</span>' : '') + '</div>'
+      + '<p class="software-item-desc">' + esc(s.desc) + '</p>'
+      + actionsHtml(s)
+      + '</div></div></article>';
+  }
 
-  // 图标加载失败（如源站禁止外链）时，回退为软件名首字母，避免出现裂图
-  document.querySelectorAll("#softwareGrid .software-icon img").forEach(function (img) {
+  document.getElementById("softwareList").innerHTML = SOFTWARE.map(itemHtml).join("");
+
+  // 图标回退
+  document.querySelectorAll("#softwareList .software-item-icon img").forEach(function (img) {
     img.addEventListener("error", function () {
       var fb = document.createElement("span");
       fb.textContent = img.dataset.fb || "?";
-      fb.style.fontSize = "22px";
-      fb.style.fontWeight = "700";
-      fb.style.color = img.dataset.fbcolor || "#6d7cf4";
+      fb.style.cssText = "font-size:22px;font-weight:700;color:" + (img.dataset.fbcolor || "#6d7cf4");
       img.replaceWith(fb);
     });
   });
 
-  // 截图加载失败时隐藏整个截图容器，避免出现裂图占位
-  document.querySelectorAll("#softwareGrid .software-shot").forEach(function (img) {
-    img.addEventListener("error", function () {
-      this.closest(".software-shot-wrap").style.display = "none";
-    });
+  // 详情弹窗
+  const modal = document.getElementById("softwareModal");
+  const body = document.body;
+
+  function openModal(idx) {
+    const s = SOFTWARE[idx];
+    if (!s) return;
+    document.getElementById("swModalIcon").innerHTML = iconHtml(s, "software-modal-icon-inner");
+    document.getElementById("swModalTitle").textContent = s.name;
+    document.getElementById("swModalTag").textContent = s.tag || "";
+    document.getElementById("swModalDesc").textContent = s.desc || "";
+    document.getElementById("swModalDetail").innerHTML = '<p>' + esc(s.detail || "暂无详细介绍。") + '</p>';
+
+    const stats = [];
+    if (s.version) stats.push('<div><span>版本</span><strong>' + esc(s.version) + '</strong></div>');
+    if (s.size) stats.push('<div><span>大小</span><strong>' + esc(s.size) + '</strong></div>');
+    if (s.rating) stats.push('<div><span>评分</span><strong>' + esc(s.rating) + '</strong></div>');
+    if (s.platform) stats.push('<div><span>平台</span><strong>' + esc(s.platform) + '</strong></div>');
+    document.getElementById("swModalStats").innerHTML = stats.join("");
+
+    const acts = [];
+    if (s.site) acts.push('<a class="el-button el-button--primary" href="' + esc(s.site) + '" target="_blank" rel="noopener">访问官网</a>');
+    if (s.download) acts.push('<a class="el-button" href="' + esc(s.download) + '" target="_blank" rel="noopener">下载安装包</a>');
+    document.getElementById("swModalActions").innerHTML = acts.length ? acts.join("") : '';
+
+    modal.hidden = false;
+    body.classList.add("software-modal-open");
+    setTimeout(() => modal.classList.add("is-visible"), 10);
+    modal.querySelector(".software-modal-close").focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove("is-visible");
+    setTimeout(() => { modal.hidden = true; body.classList.remove("software-modal-open"); }, 250);
+  }
+
+  document.getElementById("softwareList").addEventListener("click", function (e) {
+    const action = e.target.closest("[data-action]");
+    if (action) return; // 让按钮正常跳转
+    const item = e.target.closest(".software-item");
+    if (item) openModal(item.dataset.index);
   });
-</script><script src="/scripts/metrics.js"></script></body></html>
+
+  document.getElementById("softwareList").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      const item = e.target.closest(".software-item");
+      if (item) { e.preventDefault(); openModal(item.dataset.index); }
+    }
+  });
+
+  modal.addEventListener("click", function (e) {
+    if (e.target.hasAttribute("data-close")) closeModal();
+  });
+  modal.querySelector(".software-modal-close").addEventListener("click", closeModal);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !modal.hidden) closeModal();
+  });
+</script>
+<script src="/scripts/metrics.js"></script></body></html>
