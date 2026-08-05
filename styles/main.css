@@ -1396,6 +1396,11 @@ a {
 .article-card li { margin: 7px 0; }
 .article-card pre { overflow-x: auto; margin: 20px 0; padding: 18px; border-radius: 6px; background: #1f2937; color: #e5e7eb; line-height: 1.7; }
 .callout { margin: 22px 0; padding: 15px 18px; border-left: 3px solid var(--el-blue); border-radius: 3px; background: #f4f9ff; color: #606266; line-height: 1.75; }
+.article-card table:not(.model-table) { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 14px; }
+.article-card table:not(.model-table) th,
+.article-card table:not(.model-table) td { padding: 11px 13px; border: 1px solid var(--el-border); text-align: left; vertical-align: top; line-height: 1.6; }
+.article-card table:not(.model-table) th { background: #f7f8fa; color: var(--el-text); font-weight: 700; white-space: nowrap; }
+.article-card table:not(.model-table) tbody tr:nth-child(even) { background: #fcfcfd; }
 .article-end { margin-top: 34px !important; padding-top: 24px; border-top: 1px solid var(--el-border); color: #909399 !important; }
 .agent-flow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 24px 0; padding: 20px; border: 1px solid #d9ecff; border-radius: 6px; background: #f4f9ff; color: var(--el-blue); font-size: 13px; font-weight: 600; }
 .agent-flow b { color: #a0cfff; }
@@ -1558,8 +1563,9 @@ a {
 }
 @media (max-width: 700px) {
   .site-header-inner { padding: 0 16px; }
-  .site-menu { gap: 14px; margin-right: 8px; }
-  .site-menu a { font-size: 13px; }
+  .site-menu { gap: 14px; margin-left: 0; margin-right: 8px; flex: 1 1 auto; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .site-menu::-webkit-scrollbar { display: none; }
+  .site-menu a { font-size: 13px; white-space: nowrap; }
   .header-rss { display: none; }
   .page-shell, .article-shell { padding: 24px 16px 48px; }
   .hero { display: block; min-height: auto; padding: 32px 24px; }
@@ -1586,6 +1592,9 @@ a {
   .article-card h1 { font-size: 32px; }
   .article-card p, .article-card li { font-size: 15px; }
   .article-meta { flex-wrap: wrap; gap: 5px 14px; }
+  .section-heading { flex-wrap: wrap; gap: 12px; margin: 36px 0 14px; }
+  .hero-actions { flex-wrap: wrap; }
+  .article-card table:not(.model-table) { display: block; overflow-x: auto; }
 
 /* 相关阅读：明确下划线，便于一眼辨认超链接 */
 .post-detail .post-content .related-readings a,
