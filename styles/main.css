@@ -1406,15 +1406,15 @@ a {
 .tool-icon { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; border-radius: 9px; background: #f0efff; color: #6d7cf4; font-size: 13px; font-weight: 800; }
 
 /* ===== 软件推荐页面 ===== */
-.software-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-.software-card { display: flex; flex-direction: column; padding: 24px; transition: transform .2s, box-shadow .2s, border-color .2s; }
+.software-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; }
+.software-card { display: flex; flex-direction: column; width: calc(33.333% - 12px); min-width: 260px; padding: 20px; transition: transform .2s, box-shadow .2s, border-color .2s; }
 .software-card:hover { border-color: #b3d8ff; box-shadow: 0 10px 26px rgba(64,158,255,.12); transform: translateY(-3px); }
-.software-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.software-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
 .software-icon { display: inline-flex; width: 48px; height: 48px; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 12px; font-size: 24px; line-height: 1; }
 .software-icon img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; }
 .software-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .software-head h3 { margin: 0; color: var(--el-text); font-size: 19px; letter-spacing: -.02em; }
-.software-desc { flex: 1; margin: 0 0 18px; color: #606266; font-size: 14px; line-height: 1.75; min-height: 44px; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.software-desc { flex: 1; margin: 0 0 14px; color: #606266; font-size: 14px; line-height: 1.65; min-height: 40px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .software-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .software-actions .el-button { padding: 0 14px; min-height: 32px; font-size: 13px; text-decoration: none; }
 .tool-input, .tool-output, .tool-text-input, .tool-small-input { box-sizing: border-box; width: 100%; border: 1px solid #deddea; border-radius: 6px; outline: none; background: #fcfcfe; color: #454555; font: 14px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; transition: border-color .2s, box-shadow .2s; }
@@ -1489,7 +1489,7 @@ a {
   .tools-hero { padding: 26px 22px; }
   .tools-hero h1 { font-size: 32px; }
   .tools-grid { grid-template-columns: 1fr; }
-  .software-grid { grid-template-columns: 1fr; }
+  .software-card { width: 100%; min-width: auto; }
   .tool-card-wide { grid-column: auto; }
   .tool-card { padding: 20px; }
 }

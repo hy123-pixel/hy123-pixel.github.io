@@ -1,18 +1,20 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
 <style>
-  /* 软件卡片截图/图表区域 */
+  /* 软件卡片截图/图表区域（卡片内小缩略图） */
   .software-shot-wrap {
-    margin: 12px -20px -16px;
-    border-radius: 0 0 6px 6px;
+    margin: 14px 0 0;
+    border-radius: 6px;
     overflow: hidden;
     background: #f7f8fa;
     line-height: 0;
+    border: 1px solid #ebeef5;
   }
   .software-shot {
     width: 100%;
-    height: auto;
+    height: 120px;
+    object-fit: cover;
+    object-position: top;
     display: block;
-    border-top: 1px solid #ebeef5;
   }
 </style>
 </head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-grid" id="softwareGrid" aria-label="推荐软件列表"></section><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script>
@@ -34,7 +36,7 @@
       icon: "https://tmog.org/assets/brand/favicon.png",
       color: "#6d7cf4",
       tag: "系统工具 · 任务管理器",
-      desc: "由「Windows 任务管理器之父」戴夫·普拉默发布的 macOS 任务管理器测试版。可查看 CPU / GPU 使用率、核心频率、温度、资源分配与进程分支，补足 macOS 活动监视器在细节展示上的不足。macOS 公测版已开放下载，Windows 与 Linux 客户端也在开发中。",
+      desc: "戴夫·普拉默（Windows 任务管理器之父）发布的 macOS 任务管理器测试版。可查看 CPU / GPU 使用率、核心频率、温度与进程分支，补足系统活动监视器的细节不足。macOS 公测版已开放下载。",
       site: "https://tmog.org/#beta",
       download: "https://tmog.org/downloads/TMOG-Task-Manager-macOS-universal.dmg"
     },
@@ -43,7 +45,7 @@
       icon: "https://jsonbin.io/images/favicon.png",
       color: "#dfe7ff",
       tag: "开发工具 · JSON 存储",
-      desc: "免费的 JSON 云端存储服务，可把 JSON 数据托管到云端供 Web 与移动应用调用。支持创建 Bin（JSON 容器）、通过 API 读写、协作编辑与版本历史，适合做轻量后端或接口 Mock。",
+      desc: "免费的 JSON 云端存储服务，可托管 JSON 数据供 Web / 移动应用调用。支持创建 Bin、API 读写、协作编辑与版本历史，适合轻量后端或接口 Mock。",
       site: "https://jsonbin.io/app/dashboard",
       download: ""
     },
@@ -52,7 +54,7 @@
       icon: "https://www.npoint.io/favicon-32x32.png",
       color: "#6574a6",
       tag: "开发工具 · JSON 存储",
-      desc: "带 Schema 校验的 JSON 存储服务，几秒即可搭建一个轻量 JSON 端点。支持 JSON Schema 校验与锁定、子属性访问、CORS，适合原型开发时充当后端或数据 Mock；项目完全开源，也可自托管。",
+      desc: "带 Schema 校验的 JSON 存储服务，几秒即可搭建轻量 JSON 端点。支持 Schema 锁定、子属性访问与 CORS，适合原型开发或数据 Mock；项目开源，可自托管。",
       site: "https://www.npoint.io/",
       download: ""
     },
@@ -61,7 +63,7 @@
       icon: "/assets/software/unitlink-icon.svg",
       color: "#f0efff",
       tag: "效率工具 · 链接聚合",
-      desc: "一站式链接聚合落地页服务——创建个人专属 URL（unit.link/你的名字），将网站、社交主页、电话、邮箱等所有链接汇聚到一个页面。支持分组整理、自定义设计风格、一键分享至社交网络。内置 vCard 数字名片功能，访客可一键将你的联系方式保存到通讯录。",
+      desc: "一站式链接聚合落地页服务，创建个人专属 URL，把网站、社交主页、电话、邮箱等链接汇聚到一个页面。支持分组整理、自定义风格与一键分享；内置 vCard 数字名片。",
       site: "https://unit.link/",
       image: "/assets/software/unitlink-vcard.png"
     },
@@ -70,7 +72,7 @@
       icon: "/assets/software/wakdev-icon.svg",
       color: "#f0efff",
       tag: "NFC 工具 · 应用套件",
-      desc: "法国独立开发者团队 Wakdev 出品的 NFC 工具与应用全家桶。旗舰产品 NFC Tools 支持 Android / iOS / PC / Mac 全平台，可读写各类 NFC 标签、查看标签技术参数与内存信息。另有 NFC Tools Pro（高级版）、NFC Tasks（自动化任务）、NFC Tools KeyBoard Controller 等衍生产品，覆盖从手机到桌面全场景的 NFC 操作需求。",
+      desc: "Wakdev 出品的 NFC 工具全家桶。NFC Tools 支持 Android / iOS / PC / Mac 全平台读写 NFC 标签、查看技术参数；另有 Pro 版、自动化任务等衍生产品。",
       site: "https://www.wakdev.com/en/",
       image: "/assets/software/wakdev-nfctools.jpg"
     }
