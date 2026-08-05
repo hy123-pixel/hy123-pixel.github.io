@@ -1,184 +1,48 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" >
-
-<title>Mac M1下docker安装Centos8并设置SSH远程连接 | hy123-pixel</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-<link rel="icon" href="/favicon.ico">
-<link rel="stylesheet" href="/styles/main.css">
-
-
-  
-<meta name="description" content="**
-
-
-拉取centos8镜像
-保证docker处于启动状态，打开Mac终端输入命令回车:
-docker pull centos:centos8
-查看本地所有的镜像，检查centos8是否拉取成功
-docker images
-启动容器，在..." />
-    <meta name="keywords" content="docker" />
-  </head>
-  <body>
-    <div class="main">
-
-      <div class="sidebar">
-  <div class="top-container">
-    <div class="top-header-container">
-      <a class="site-title-container" href="/">
-        <img src="/images/avatar.png" class="site-logo">
-        <h1 class="site-title">hy123-pixel</h1>
-      </a>
-      <div class="menu-btn">
-        <div class="line"></div>
-      </div>
-    </div>
-    <div>
-      
-        
-          <a href="/" class="site-nav">
-            首页
-          </a>
-        
-      
-        
-          <a href="/tags" class="site-nav">
-            标签
-          </a>
-        
-      
-        
-          <a href="/archives" class="site-nav">
-            所有文章
-          </a>
-        
-      
-        
-          <a href="/about" class="site-nav">
-            关于
-          </a>
-        
-      
-        
-          <a href="/links" class="site-nav">
-            导航
-          </a>
-        
-      
-    </div>
-  </div>
-  <div class="bottom-container">
-    <div class="social-container">
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    </div>
-    <div class="site-description">
-      温故而知新
-    </div>
-    <div class="site-footer">
-      © hy123-pixel | <a class="rss" href="/atom.xml" target="_blank">RSS</a>
-    </div>
-  </div>
-</div>
-
-
-      <div class="main-container">
-        <div class="content-container">
-          <div class="post-detail">
-            <h2 class="post-title">Mac M1下docker安装Centos8并设置SSH远程连接</h2>
-            <div class="post-date">2022-10-21</div>
-            
-            <div class="post-content">
-              <p>**</p>
-<!-- more -->
-<ol>
-<li>拉取centos8镜像<br>
-保证docker处于启动状态，打开Mac终端输入命令回车:<br>
-<code>docker pull centos:centos8</code></li>
-<li>查看本地所有的镜像，检查centos8是否拉取成功<br>
-<code>docker images</code></li>
-<li>启动容器，在docker虚拟出centos8，启动的同时，设置需要映射的端口，端口映射方法<code>-p mac端口号:docker端口号</code><br>
-<code>docker run -d -p 22:22 -p 3306:3306 -p 80:80 --name centos8 --privileged=true centos:centos8 /usr/sbin/init</code></li>
-<li>进入centos8容器<br>
-<code>docker exec -it centos8 /bin/bash</code></li>
-<li>安装各种常用的工具</li>
-</ol>
-<pre><code>yum install net-tools -y
-yum install -y openssh-server vim lrzsz wget gcc-c++ pcre pcre-devel zlib zlib-devel ruby openssl openssl-devel patch bash-completion lsof unzip zip  
-// 这两个工具会提示找不到，可以不安装
-yum install -y zlib.i686 libstdc++.i686
-</code></pre>
-<ol start="6">
-<li>在安装常用工具时，在centos8中，会出现报错，报错详情如下</li>
-</ol>
-<pre><code>Error: Failed to download metadata for repo 'appstream': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
-</code></pre>
-<p>原因是因为官方已经停止了对centos8的维护，在终端中输入如下代码即可解决</p>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Apple Silicon（M1/M2）Mac 上用 Docker Desktop 跑起一个 CentOS 8 容器，并配置 SSH 服务，让你像连接真机一样用终端远程登录，适合在 macOS 上临时验证 Linux 环境。"><title>Mac M1 下用 Docker 跑起 CentOS 8 并开启 SSH 远程连接 · 运维笔记 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu" aria-label="主导航"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ops-docker.svg" alt="Mac M1 下用 Docker 跑起 CentOS 8 并开启 SSH 远程连接 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">运维</span><time>2022-10-21 · 约 8 分钟</time></div><h1>Mac M1 下用 Docker 跑起 CentOS 8 并开启 SSH 远程连接</h1><p class="article-lead">想在 macOS 上临时有个 Linux 环境，又不想开虚拟机？用 Docker 起一个 CentOS 8 容器，再把 SSH 服务跑起来，就能像连接一台真机一样用终端远程登录。这篇记的是在 Apple Silicon（M1/M2）Mac 上从零跑通的全过程。</p>
+<h2>一、先确认 Docker 已经在跑</h2>
+<p>Docker 在 Mac 上是一个桌面应用，容器都跑在它内置的轻量虚拟机里。开始前先打开 <strong>Docker Desktop</strong>，确认菜单栏小鲸鱼图标没有报错、状态是 running。如果还没装，去 <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">官网</a> 下载 Apple Silicon 版安装即可。注意别下成 Intel 版，M 系列芯片要选 arm64 那一个。</p>
+<div class="callout"><strong>为什么不用虚拟机：</strong>Docker 容器共享宿主机内核、秒级启动、几乎不占磁盘，对“临时要个 Linux 验证一下”的场景比 VirtualBox / Parallels 轻得多。</div>
+<h2>二、拉镜像并启动容器</h2>
+<p>先拉取 CentOS 8 的官方镜像，并确认拉取成功：</p>
+<pre><code>docker pull centos:centos8
+docker images   # 检查本地镜像列表里有没有 centos8</code></pre>
+<p>启动容器时有两个关键参数：<code>-p 宿主机端口:容器端口</code> 做端口映射；<code>--privileged</code> 配合 <code>/usr/sbin/init</code> 让容器里能跑 systemd（SSH 这类服务依赖它）：</p>
+<pre><code>docker run -d -p 22:22 -p 3306:3306 -p 80:80 \
+  --name centos8 --privileged=true \
+  centos:centos8 /usr/sbin/init</code></pre>
+<div class="callout"><strong>端口怎么选：</strong>左边是 Mac 本机的端口，右边是容器里的端口。这里把容器的 22（SSH）映射到本机 22，后面才能直接用 <code>ssh root@localhost</code> 连。如果本机 22 被占，改成 <code>-p 2222:22</code>，连接时就要写 <code>-p 2222</code>。</div>
+<h2>三、进入容器、装常用工具</h2>
+<p>进容器终端（<code>-it</code> 表示交互模式，退出不会关掉容器）：</p>
+<pre><code>docker exec -it centos8 /bin/bash</code></pre>
+<p>换源之后（见下一步），安装一批常用工具：</p>
+<pre><code>yum install -y openssh-server vim lrzsz wget gcc-c++ \
+  pcre pcre-devel zlib zlib-devel ruby openssl openssl-devel \
+  patch bash-completion lsof unzip zip net-tools</code></pre>
+<p>其中 <code>net-tools</code> 提供 <code>netstat</code>，<code>openssh-server</code> 是后面 SSH 的核心。个别 32 位兼容包（如 <code>zlib.i686</code>、<code>libstdc++.i686</code>）可能提示找不到，跳过即可，不影响主线。</p>
+<h2>四、CentOS 8 源已失效，先换 vault 源</h2>
+<p>CentOS 8 官方在 2021 年底停止维护，默认 mirror 源已经 404，<code>yum</code> 会报 <code>Failed to download metadata for repo 'appstream'</code>。把源指向仍保留旧包的 <code>vault.centos.org</code> 即可：</p>
 <pre><code>sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-</code></pre>
-<ol start="7">
-<li>继续安装常用工具<code>yum install -y initscripts</code></li>
-<li>安装SSH</li>
-</ol>
-<pre><code>sshd rpm -qa | grep ssh
-yum install openssh-server
-service sshd restart
-</code></pre>
-<p>检查端口是否启动成功 <code>netstat -antp | grep sshd</code></p>
-<ol start="9">
-<li>
-<p>修改sshd_config为密码登录，centos8不用操作，旧版本需要编辑<code> vim /etc/ssh/sshd_config</code><br>
-输入i进入insert模式，使用键盘上下左右移动光标到<code>PermitRootLogin</code>那一行，将前面的#移除，并将no改为yes<br>
-编辑完成后，先按esc，再输入:wq  ,回车保存即可</p>
-</li>
-<li>
-<p>设置root账号的密码<br>
-输入<code>passwd root</code>回车，输入新密码，再次确认新密码回车即可，但centos8 没有passwd命令，输入<code>yum install -y passwd</code>即可</p>
-</li>
-<li>
-<p>下一步即可使用各种工具链接centos8使用了，此处使用终端直接连接，输入<code>ssh root@localhost -p 22</code>，<code>localhost</code>为本机的地址，可以使用当前ip地址，或者<code>127.0.0.1</code>代替，回车输入密码即可连接centsos</p>
-</li>
-</ol>
-<p>查看docker 配置文件</p>
-<h1 id="docker-inspect-centos8"><code>docker inspect centos8</code>**</h1>
-<p>docker管理工具<code>Kitematic</code></p>
-
-            </div>
-            
-              <div class="tag-container">
-                
-                  <a href="/pdEMfnK3F/" class="tag">
-                    docker
-                  </a>
-                
-              </div>
-            
-            
-              
-              
-
-              
-            
-
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div></footer><script src="/scripts/metrics.js"></script></body>
-</html>
+sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*</code></pre>
+<div class="callout"><strong>更省心的选择：</strong>如果这是长期要用的环境，建议直接用 <a href="https://www.rockylinux.org/" target="_blank" rel="noopener">Rocky Linux</a> 或 <a href="https://almalinux.org/" target="_blank" rel="noopener">AlmaLinux</a> 镜像——它们是 CentOS 8 的社区继任者，源还在维护，免得每次都先改 vault 才能装东西。</div>
+<h2>五、安装并启动 SSH</h2>
+<pre><code>yum install -y openssh-server initscripts
+ssh-keygen -A            # 生成主机密钥，否则 sshd 起不来
+systemctl start sshd     # 或 service sshd restart
+netstat -antp | grep sshd   # 确认 22 端口已在监听</code></pre>
+<p>如果 <code>systemctl</code> 提示不可用，用 <code>service sshd restart</code>。看到 <code>sshd</code> 监听在 <code>0.0.0.0:22</code> 就说明服务起来了。</p>
+<h2>六、允许密码登录并设置 root 密码</h2>
+<p>旧版 CentOS 需要编辑 <code>/etc/ssh/sshd_config</code>，把 <code>#PermitRootLogin</code> 改成 <code>PermitRootLogin yes</code>、并确认 <code>PasswordAuthentication yes</code>，改完 <code>systemctl restart sshd</code>。CentOS 8 默认通常已经允许密码登录，可先跳过这步，连不通再回来改。</p>
+<p>给 root 设个密码（CentOS 8 最小镜像里可能没有 <code>passwd</code> 命令，先装）：</p>
+<pre><code>yum install -y passwd
+passwd root   # 输入两次新密码</code></pre>
+<h2>七、从本机 SSH 连进去</h2>
+<p>回到 Mac 终端，直接连本机映射出来的 22 端口：</p>
+<pre><code>ssh root@localhost -p 22
+# localhost 也可换成 127.0.0.1 或本机 IP；若前面映射的是 2222，则写 -p 2222</code></pre>
+<p>输入刚才设的密码，能进去就说明整条链路通了。接下来就能像用一台普通 Linux 服务器一样，在里面装软件、跑服务、做验证了。</p>
+<h2>日常管理</h2>
+<p>查看容器配置：<code>docker inspect centos8</code>。以前的图形化管理工具 <strong>Kitematic</strong> 已经停止维护，现在更推荐直接用 <code>docker</code> 命令，或在 <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Docker Desktop</a> 面板里查看容器状态、启停和日志。</p>
+<hr>
+<h2>相关阅读</h2>
+<div class="related-readings"><p><a href="/mrnEjUvxE/">阿里云 ECS 修改主机名（hostname）</a>——另一篇服务器运维小记。</p><p><a href="/vapor/deploy/">部署到自己的云服务器</a>——把服务真正跑在云上时的注意事项。</p></div>
+</article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><span>© 2026 hy123-pixel</span><span>Built with HTML &amp; CSS · No external runtime</span></footer><script src="/scripts/metrics.js"></script></body></html>
