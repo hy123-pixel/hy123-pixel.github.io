@@ -1,9 +1,12 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
 <style>
-  .software-modal-imgwrap { margin: 0 0 14px; border-radius: 10px; overflow: hidden; background:#f7f8fa; text-align:center; }
-  .software-modal-img { max-width: 100%; height: auto; display:block; margin: 0 auto; }
+  .software-modal-shots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 20px; }
+  .software-modal-shots figure { margin: 0; }
+  .software-modal-shots img { width: 100%; height: 168px; object-fit: cover; display: block; border-radius: 10px; border: 1px solid #f0efff; background: #f7f8fa; }
+  .software-modal-shots figcaption { padding-top: 7px; color: #8a8999; font-size: 12px; text-align: center; }
+  @media (max-width: 560px) { .software-modal-shots { grid-template-columns: 1fr; } .software-modal-shots img { height: 200px; } }
 </style>
-</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-list" id="softwareList" aria-label="推荐软件列表"></section></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1><p>这里收录我亲自用过、愿意长期留在电脑里的工具。点击任意卡片可查看完整介绍、版本、评分与官网预览。</p></section><section class="software-grid" id="softwareList" aria-label="推荐软件列表"></section></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
 
 <div id="softwareModal" class="software-modal" role="dialog" aria-modal="true" aria-labelledby="swModalTitle" hidden>
   <div class="software-modal-backdrop" data-close></div>
@@ -18,6 +21,7 @@
     </div>
     <div class="software-modal-body">
       <p class="software-modal-desc" id="swModalDesc"></p>
+      <div class="software-modal-shots" id="swModalShots"></div>
       <div class="software-modal-stats" id="swModalStats"></div>
       <div class="software-modal-actions" id="swModalActions"></div>
       <div class="software-modal-detail" id="swModalDetail"></div>
@@ -40,7 +44,9 @@
       rating: "4.7",
       platform: "macOS（Windows / Linux 开发中）",
       site: "https://tmog.org/#beta",
-      download: "https://tmog.org/downloads/TMOG-Task-Manager-macOS-universal.dmg"
+      download: "https://tmog.org/downloads/TMOG-Task-Manager-macOS-universal.dmg",
+      siteShot: "/assets/software/tmog-site.png",
+      appShot: "/assets/software/tmog-app.png"
     },
     {
       name: "JSONBin.io",
@@ -55,7 +61,9 @@
       rating: "4.5",
       platform: "Web / API",
       site: "https://jsonbin.io/app/dashboard",
-      download: ""
+      download: "",
+      siteShot: "/assets/software/jsonbin-site.png",
+      appShot: "/assets/software/jsonbin-app.png"
     },
     {
       name: "n:point",
@@ -70,7 +78,9 @@
       rating: "4.4",
       platform: "Web / API（开源可自托管）",
       site: "https://www.npoint.io/",
-      download: ""
+      download: "",
+      siteShot: "/assets/software/npoint-site.png",
+      appShot: "/assets/software/npoint-app.png"
     },
     {
       name: "Unit.Link",
@@ -85,7 +95,9 @@
       rating: "4.6",
       platform: "Web",
       site: "https://unit.link/",
-      download: ""
+      download: "",
+      siteShot: "/assets/software/unitlink-site.png",
+      appShot: "/assets/software/unitlink-app.png"
     },
     {
       name: "Wakdev",
@@ -100,7 +112,9 @@
       rating: "4.3",
       platform: "Android / iOS / Windows / macOS",
       site: "https://www.wakdev.com/en/",
-      download: ""
+      download: "",
+      siteShot: "/assets/software/wakdev-site.png",
+      appShot: "/assets/software/wakdev-app.png"
     },
     {
       name: "Vapor 大型教程",
@@ -116,6 +130,8 @@
       platform: "Web（docsify）",
       site: "https://vapor.jokerhub.cn/",
       download: "",
+      siteShot: "/assets/software/vapor-site.png",
+      appShot: "/assets/software/vapor-app.png",
       image: "/assets/software/vapor-book.png"
     }
   ];
@@ -139,21 +155,20 @@
     return actions.length ? '<div class="software-actions">' + actions.join("") + '</div>' : '';
   }
 
-  function itemHtml(s, idx) {
-    return '<article class="el-card software-item" data-index="' + idx + '" tabindex="0" role="button" aria-haspopup="dialog">'
-      + '<div class="software-item-main">'
-      + iconHtml(s, "software-item-icon")
-      + '<div class="software-item-body">'
-      + '<div class="software-item-head"><h3>' + esc(s.name) + '</h3>' + (s.tag ? '<span class="el-tag el-tag--primary">' + esc(s.tag) + '</span>' : '') + '</div>'
-      + '<p class="software-item-desc">' + esc(s.desc) + '</p>'
+  function cardHtml(s, idx) {
+    return '<article class="el-card software-card" data-index="' + idx + '" tabindex="0" role="button" aria-haspopup="dialog">'
+      + '<div class="software-card-top">'
+      + iconHtml(s, "software-card-icon")
+      + '<div class="software-card-head"><h3>' + esc(s.name) + '</h3>' + (s.tag ? '<span class="el-tag el-tag--primary">' + esc(s.tag) + '</span>' : '') + '</div>'
+      + '</div>'
+      + '<p class="software-card-desc">' + esc(s.desc) + '</p>'
       + actionsHtml(s)
-      + '</div></div></article>';
+      + '</article>';
   }
 
-  document.getElementById("softwareList").innerHTML = SOFTWARE.map(itemHtml).join("");
+  document.getElementById("softwareList").innerHTML = SOFTWARE.map(cardHtml).join("");
 
-  // 图标回退
-  document.querySelectorAll("#softwareList .software-item-icon img").forEach(function (img) {
+  document.querySelectorAll("#softwareList .software-card-icon img").forEach(function (img) {
     img.addEventListener("error", function () {
       var fb = document.createElement("span");
       fb.textContent = img.dataset.fb || "?";
@@ -162,7 +177,6 @@
     });
   });
 
-  // 详情弹窗
   const modal = document.getElementById("softwareModal");
   const body = document.body;
 
@@ -173,6 +187,17 @@
     document.getElementById("swModalTitle").textContent = s.name;
     document.getElementById("swModalTag").textContent = s.tag || "";
     document.getElementById("swModalDesc").textContent = s.desc || "";
+
+    const shots = [];
+    if (s.siteShot) shots.push(["网站预览", s.siteShot]);
+    if (s.appShot) shots.push(["软件预览", s.appShot]);
+    if (s.image) shots.push(["更多", s.image]);
+    const shotsEl = document.getElementById("swModalShots");
+    shotsEl.innerHTML = shots.length ? shots.map(function (p) {
+      return '<figure><img src="' + esc(p[1]) + '" alt="' + esc(s.name) + ' ' + esc(p[0]) + '" loading="lazy"><figcaption>' + esc(p[0]) + '</figcaption></figure>';
+    }).join("") : '';
+    shotsEl.style.display = shots.length ? "" : "none";
+
     var imgHtml = s.image ? '<div class="software-modal-imgwrap"><img class="software-modal-img" src="' + esc(s.image) + '" alt="' + esc(s.name) + ' 配图" loading="lazy"></div>' : '';
     document.getElementById("swModalDetail").innerHTML = imgHtml + '<p>' + esc(s.detail || "暂无详细介绍。") + '</p>';
 
@@ -201,14 +226,14 @@
 
   document.getElementById("softwareList").addEventListener("click", function (e) {
     const action = e.target.closest("[data-action]");
-    if (action) return; // 让按钮正常跳转
-    const item = e.target.closest(".software-item");
+    if (action) return;
+    const item = e.target.closest(".software-card");
     if (item) openModal(item.dataset.index);
   });
 
   document.getElementById("softwareList").addEventListener("keydown", function (e) {
     if (e.key === "Enter" || e.key === " ") {
-      const item = e.target.closest(".software-item");
+      const item = e.target.closest(".software-card");
       if (item) { e.preventDefault(); openModal(item.dataset.index); }
     }
   });
