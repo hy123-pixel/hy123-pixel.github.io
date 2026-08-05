@@ -1,5 +1,90 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="检索增强生成 RAG 的工程实践。"><title>RAG 不是魔法 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-rag.svg" alt="RAG 不是魔法：检索增强生成的工程实践 封面"></div><div class="post-topline"><span class="el-tag el-tag--success">RAG</span><time>2024-08-01 · 10 分钟</time></div><h1>RAG 不是魔法：检索增强生成的工程实践</h1><p class="article-lead">让模型回答“它真正知道的内容”，关键在于把检索链路做好，而不是盲目换一个更大的模型。</p><div class="article-visuals"><figure><img src="/assets/rag-1.svg" alt="RAG 核心概念示意图"><figcaption>RAG：核心概念与关键组成</figcaption></figure><figure><img src="/assets/rag-2.svg" alt="RAG 工作流程示意图"><figcaption>RAG：从输入到输出的工作流程</figcaption></figure><figure><img src="/assets/rag-3.svg" alt="RAG 实践检查示意图"><figcaption>RAG：实践检查与迭代清单</figcaption></figure></div><div class="article-meta"><span>工程实践</span><span>难度：中等</span></div><hr><h2>先把问题拆开</h2><p>知识库问答失败时，很多人第一反应是修改 Prompt。实际上，一个答案需要经过“问题理解 → 文档召回 → 片段重排 → 上下文拼装 → 模型生成”五个环节。任何一个环节出错，最后看起来都像是模型在胡说。</p><h2>一条可靠的检索链路</h2><ol><li><strong>切分：</strong>优先按标题、段落和语义切分，保留文档名、章节、更新时间等来源信息。</li><li><strong>召回：</strong>向量检索负责语义相似，关键词检索负责精确命中；混合召回通常比单一方式更稳。</li><li><strong>重排：</strong>用更精细的模型对候选片段重新排序，避免把相似但不相关的内容塞进上下文。</li><li><strong>生成：</strong>要求模型只依据上下文回答，并在答案中带出引用片段或文档来源。</li></ol><div class="callout"><strong>经验：</strong>“召回了什么”往往比“模型多大”更影响知识库问答的最终质量。</div><h2>切分不是越细越好</h2><p>切得太细，片段失去语境；切得太大，又会浪费上下文窗口。一个比较实用的起点是按标题分组，再以 300～800 字作为软限制，并给相邻片段留少量重叠。最终仍须用真实问题来验证，而不是迷信某个固定数字。</p><h2>给答案加上证据</h2><p>Prompt 可以明确三条规则：上下文没有答案时直接说“不确定”；每个结论尽量对应来源；不要把推测写成事实。程序侧再检查引用是否存在、答案是否超出权限范围，才能让系统真正可用。</p><h2>用数据而不是感觉评估</h2><p>准备一组真实问题，分别观察召回命中率、答案忠实度和回答完整度。每次调整切分大小、Top-K 或提示词，都应该用这组问题回归。RAG 是一条数据管道，不是一个开关。</p><p class="article-end">先让证据可靠，再让表达自然。一个可解释的普通答案，通常比一个漂亮但无法追溯的答案更有价值。</p>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RAG 检索增强生成的工程深度实践：选型、切分、混合检索、重排与生产评估。">
+  <title>RAG 不是魔法：一条可靠检索链路的工程拆解 · hy123-pixel</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="element-theme">
+  <header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header>
+  <main class="el-main article-shell">
+    <article class="el-card article-card">
+      <div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-rag.svg" alt="RAG 检索增强生成的工程实践 封面"></div>
+      <div class="post-topline"><span class="el-tag el-tag--primary">RAG</span><time>2026-08-05 · 13 分钟</time></div>
+      <h1>RAG 不是魔法：一条可靠检索链路的工程拆解</h1>
+      <p class="article-lead">换更大的模型往往救不了“答非所问”。真正决定 RAG 上限的，是你能否把答案锚定到自己的资料——本文把检索链路拆开，讲清每一步的取舍与踩坑。</p>
+      <div class="article-visuals">
+        <figure><img src="/assets/rag-1.svg" alt="RAG 核心概念示意图"><figcaption>RAG：核心组成与职责边界</figcaption></figure>
+        <figure><img src="/assets/rag-2.svg" alt="RAG 工作流程示意图"><figcaption>RAG：从查询到带引用答案的链路</figcaption></figure>
+        <figure><img src="/assets/rag-3.svg" alt="RAG 实践检查示意图"><figcaption>RAG：可落地的实践检查清单</figcaption></figure>
+      </div>
+      <div class="article-meta"><span>难度：进阶</span><span>适合：做知识库问答 / 企业搜索的工程师</span></div>
+      <hr>
+      <h2>先回答一个问题：RAG、微调还是长上下文？</h2>
+      <p>很多人把这三种当成同一件事的竞争者，其实它们解决的是不同维度的问题。RAG 解决的是<strong>“知识不在权重里”</strong>：你的内部文档、今天刚更新的价格表、某个客户自己的历史工单，模型训练时根本没见过，也不可能塞进权重。微调解决的是<strong>“行为/格式/风格不对”</strong>：你希望它稳定输出某种 JSON 结构、用特定语气、遵循公司术语，这类“能力形状”的改变靠喂数据比靠检索更稳。长上下文（200K+ token）解决的是<strong>“窗口内就能放下全部材料”</strong>：当整本文档能一次性塞进上下文，检索的必要性确实下降。</p>
+      <p>但工程上三者不是互斥的。一个常见的组合是：长上下文承载“当前会话的全量材料”，RAG 负责“从海量历史库里精确定位”，微调负责“固定输出契约”。选型的第一性原理是——<strong>数据是否在训练权重中、是否频繁变化、是否需要被引用溯源</strong>。会频繁变动、需要给出处、体量远超上下文窗口的知识，RAG 是不二之选。</p>
+      <table>
+        <thead><tr><th>维度</th><th>RAG</th><th>微调</th><th>长上下文</th></tr></thead>
+        <tbody>
+          <tr><td>适用知识</td><td>外部/易变/需溯源</td><td>固定风格与格式</td><td>窗口内全量材料</td></tr>
+          <tr><td>更新成本</td><td>极低（改索引）</td><td>高（重训）</td><td>低（改输入）</td></tr>
+          <tr><td>可溯源</td><td>强（带引用）</td><td>弱</td><td>中</td></tr>
+          <tr><td>成本/延迟</td><td>检索+生成</td><td>仅生成</td><td>高算力</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>为什么重要：</strong>先用 RAG 把“知识从哪来”这件事做实，再谈微调和长上下文。多数企业问答失败，不是模型不行，是检索链路在漏答案。</div>
 
+      <h2>切分：被低估的第一道关口</h2>
+      <p>切分（chunking）直接决定了“召回的片段是否包含完整答案”。常见三种策略：<strong>固定切分</strong>按字符数（如 512 token）硬砍，实现简单但容易把一句话拦腰截断；<strong>递归切分</strong>按段落→句子→词的层级递归切，优先在标点/换行处断开，是 LangChain 等框架的默认选择，对大多数 Markdown/HTML 文档很稳；<strong>语义切分</strong>用_embedding_在相似度突降处断句，能保留完整语义单元，但计算更贵、边界更不可预测。</p>
+      <p>chunk size 是核心权衡：太小会丢失上下文（一个 definition 被拆成两半，检索只命中一半）；太大则单块噪声多、召回精度下降、且占用上下文窗口。经验起点是 256–512 token，重叠（overlap）设为 10–20% 以避免边界信息丢失。对代码、表格这类结构敏感内容，应优先按语法结构（函数、表格行）切，而不是按字符。</p>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>别忘了在每块元数据里保留 source、章节路径、更新时间。没有元数据的 chunk，召回后模型无法引用，用户也无法溯源，信任直接崩塌。</div>
 
-<p>RAG 的核心不在模型多大，而在你能否把答案锚定到自己的资料：切分、召回、重排与引用每少一环，模型就越容易凭空编造。把检索链路做扎实，模型才真正成为你知识的延伸，而不是又一个会自信胡说的对话框。</p>
-</article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
+      <h2>检索：稠密 + 稀疏的混合才是常态</h2>
+      <p>纯向量检索（稠密）擅长“语义相似”：用户问“怎么退款”，能命中“取消订单后钱多久到账”。但它对精确字符串（产品型号、错误码、人名）很弱。稀疏检索（BM25）正好相反：精确关键词命中极强，但理解不了同义表达。所以生产环境几乎都用<strong>混合检索（hybrid）</strong>：两者各召回一批，再融合。</p>
+      <p>融合常用 RRF（Reciprocal Rank Fusion）：<code>score = Σ 1/(k + rank)</code>，不依赖各自分数量纲、实现简单。稠密向量模型优先选领域适配好的，如 BGE、E5、GTE 系列，中文场景建议用专门的中文版并做归一化。检索后还要<strong>重排（rerank）</strong>：用 Cross-Encoder（如 BGE-reranker）对 top-k 候选做精细打分，它把 query 和 doc 拼在一起算相关性，精度远高于双塔召回，但慢，所以只作用在召回的几十个候选上。</p>
+      <pre><code># 混合检索 + 重排的精简示意（Python / 伪代码）
+from rank_bm25 import BM25Okapi
+import numpy as np
+
+def hybrid_search(query_vec, query_tokens, dense_idx, bm25, chunks, k=20):
+    dense = dense_idx.search(query_vec, top_k=50)        # 稠密召回 top50
+    sparse = bm25.get_top_n(query_tokens, chunks, n=50)  # 稀疏召回 top50
+    # RRF 融合
+    rrf = {}
+    for rank, doc in enumerate(dense + sparse, 1):
+        rrf[doc] = rrf.get(doc, 0) + 1 / (60 + rank)
+    fused = sorted(rrf, key=rrf.get, reverse=True)
+    return reranker.rank(query_tokens, fused[:k])        # 重排后取 top-k
+
+# 上线建议：向量库用 pgvector / Milvus，reranker 本地或独立服务部署</code></pre>
+      <div class="callout"><strong>小贴士：</strong>召回阶段宁多勿少（top 30–50），把“筛选”交给 reranker；生成阶段再收紧到 4–8 块，避免上下文被噪声淹没。</div>
+
+      <h2>查询改写与 HyDE：让“问法”对齐“写法”</h2>
+      <p>用户的问题是口语化的，文档是书面化的，二者存在表达鸿沟。两种解法：<strong>查询改写（Query Rewriting）</strong>用一个轻量模型把用户问题改写成更贴近文档索引风格的检索词，或拆成多个子问题（multi-query）分别检索再合并；<strong>HyDE（Hypothetical Document Embeddings）</strong>让模型先“假设”一个答案，再用这个虚构答案的 embedding 去检索——因为生成的答案措辞更接近真实文档，反而能拉回更相关的块。HyDE 对事实型问答有效，但对需要精确数据的场景可能引入幻觉偏差，需配合重排兜底。</p>
+
+      <h2>图 RAG 与多路召回：当关系本身就是答案</h2>
+      <p>普通 RAG 召回的是“片段”，但如果问题本质是“A 和 B 有什么关系”“某实体的上下游影响链”，片段检索就力不从心。<strong>GraphRAG</strong> 先对文档做实体/关系抽取，构建知识图谱，检索时沿图遍历，把子图结构一并喂给模型。它特别适合合规、科研、企业组织关系这类“强关联”场景，代价是索引构建成本高、需要图数据库。更轻量的做法是<strong>多路召回</strong>：同一查询并行走“摘要库 / FAQ 库 / 全文库 / 图谱”多条路，最后由 reranker 或路由模型统一排序。</p>
+
+      <h2>一张图看清整条检索链路</h2>
+      <div class="diagram-card"><span class="diagram-label">RAG 检索链路</span>
+        <div class="token-line">
+          <span>用户查询</span><b>→</b><span>查询改写/HyDE</span><b>→</b><span>稠密+稀疏混合召回</span><b>→</b><span>RRF 融合</span><b>→</b><span>重排 Rerank</span><b>→</b><span>上下文拼装(带元数据)</span><b>→</b><span>带引用生成</span>
+        </div>
+        <small>任意一环漏检，最终都表现为“模型在胡说”；把每一环的指标量化，才能定位瓶颈。</small>
+      </div>
+
+      <h2>怎么知道 RAG 真的变好了：评估与生产坑</h2>
+      <p>评估要分两段看。检索侧看<strong>召回率（Recall@k）</strong>：正确答案是否出现在召回的 k 个块里——这决定“模型有没有机会答对”。生成侧看<strong>答案忠实度（Faithfulness）</strong>与<strong>上下文利用率</strong>：模型是否真的基于检索内容作答、有没有编造上下文之外的信息（幻觉率）。实用做法是用 LLM-as-judge 对“答案是否可由给定片段推导”打分，但需定期人工抽检校准，避免评审模型本身有偏差。</p>
+      <p>生产坑集中在三处：其一是<strong>上下文污染</strong>，召回块太多太杂，模型反而被带偏，要靠 reranker 收紧；其二是<strong>元数据丢失</strong>导致无法溯源，前面已强调；其三是<strong>冷启动无评估集</strong>，建议上线第一天就人工收集 50–100 条真实问答作为黄金集（golden set），每次改动只变一个变量（切分/Prompt/模型/重排阈值）跑回归。</p>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>不要只看“平均分变高”。把最易失败的 20% 长尾问题单独盯，它们往往决定用户是否信任整个系统。</div>
+      <p class="article-end">RAG 的核心不在模型多大，而在你能否把答案锚定到自己的资料。把切分、混合召回、重排、引用和量化评估每一环做扎实，模型才真正成为你知识的延伸，而不是又一个会自信胡说的对话框。</p>
+      <hr>
+      <p><strong>相关阅读：</strong><a href="/ai-coding/">AI 编程：从补全代码到协作式开发</a> · <a href="/ai-eval/">AI 应用不是 Demo：如何建立评估体系</a> · <a href="/ai-local/">本地模型还有意义吗：开源与端侧 AI 的机会</a></p>
+    </article>
+  </main>
+  <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+  <script src="/scripts/metrics.js"></script>
+</body>
+</html>

@@ -1,5 +1,126 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="多模态 AI 如何理解文字、图片、声音和视频。"><title>多模态 AI：模型开始理解真实世界 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-multimodal.svg" alt="多模态 AI：模型开始理解真实世界 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">多模态</span><time>2024-08-18 · 9 分钟</time></div><h1>多模态 AI：模型开始理解真实世界</h1><p class="article-lead">文字只是人类认识世界的一种方式。下一阶段的 AI 将不再局限于文字，而会同时处理图片、声音、视频与空间关系。</p><div class="article-visuals"><figure><img src="/assets/multimodal-1.svg" alt="多模态 AI 核心概念示意图"><figcaption>多模态 AI：核心概念与关键组成</figcaption></figure><figure><img src="/assets/multimodal-2.svg" alt="多模态 AI 工作流程示意图"><figcaption>多模态 AI：从输入到输出的工作流程</figcaption></figure><figure><img src="/assets/multimodal-3.svg" alt="多模态 AI 实践检查示意图"><figcaption>多模态 AI：实践检查与迭代清单</figcaption></figure></div><hr><h2>从“看图说话”到共同表示</h2><p>早期的视觉模型与语言模型各自只处理单一类型的数据；多模态模型则试图把不同形式的输入映射到同一个语义空间。这样一来，它既能看懂截图里的按钮、照片中的表格、视频里的动作，也能用语言加以解释或调用工具。</p><h2>三个值得关注的应用</h2><ol><li><strong>文档与表格：</strong>直接识别版式、图表与扫描件，减少人工录入。</li><li><strong>实时语音：</strong>将“听、理解、回答”合成一次低延迟的交互。</li><li><strong>视频理解：</strong>从长视频中定位事件、生成摘要与操作指引。</li></ol><div class="callout"><strong>工程难点：</strong>多模态输入越丰富，藏匿其间的隐私风险也越多。存储、权限与脱敏，不能在接入模型之后才补。</div><h2>应用设计的变化</h2><p>不要只问“模型能不能看图”，而要问：它看完之后究竟要完成什么工作——抽取字段、发现异常、给出解释，还是驱动下一步动作？任务定义得越清楚，多模态能力才越容易转化为真实的产品价值。</p><p class="article-end">多模态不是给聊天窗口加一双眼睛，而是让 AI 更接近人类实际工作的输入方式。</p>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="多模态 AI 的原理、视觉编码器、VLM 架构与落地坑：从单模态到统一表示，从描述图到基于图做决策。">
+  <title>多模态 AI：模型开始理解真实世界 · hy123-pixel</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="element-theme">
+  <header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header>
+  <main class="el-main article-shell">
+    <article class="el-card article-card">
+      <div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-multimodal.svg" alt="多模态 AI：模型开始理解真实世界 封面"></div>
+      <div class="post-topline"><span class="el-tag el-tag--primary">多模态</span><time>2026-08-05 · 14 分钟</time></div>
+      <h1>多模态 AI：模型开始理解真实世界</h1>
+      <p class="article-lead">读完这篇，你能说清楚：为什么多模态比"两个模型拼一起"难得多、一张图是怎么被变成模型能读懂的"词"、以及当你想让 AI 基于截图去点按钮时，真正该担心的延迟、成本与对齐问题。</p>
+      <div class="article-visuals">
+        <figure><img src="/assets/multimodal-1.svg" alt="多模态 AI 核心概念示意图"><figcaption>多模态 AI：核心概念与关键组成</figcaption></figure>
+        <figure><img src="/assets/multimodal-2.svg" alt="多模态 AI 工作流程示意图"><figcaption>多模态 AI：从输入到输出的工作流程</figcaption></figure>
+        <figure><img src="/assets/multimodal-3.svg" alt="多模态 AI 实践检查示意图"><figcaption>多模态 AI：实践检查与迭代清单</figcaption></figure>
+      </div>
+      <div class="article-meta"><span>难度：进阶</span><span>适合：做 AI 产品、RAG、自动化工具的开发者</span></div>
+      <hr>
+      <h2>一、为什么多模态难：从单模态到统一表示</h2>
+      <p>早期的视觉模型（比如只做分类的 CNN）和语言模型（只做文本生成）各自活在封闭的世界里：视觉模型输出"这是猫"的概率，语言模型输出"下一个字是什么"。它们能各自把数据压成向量（一串数字），但这两个向量空间彼此不连通——"猫"这个字和一张猫图在模型眼里毫无关系。</p>
+      <p>多模态的核心目标，是建立<strong>统一表示（unified representation）</strong>：让文字、图片、声音最终落在同一个可比较的语义空间里。这样模型才能回答"这张图里有没有猫"——也就是把图像区域和"猫"这个词对齐到相近的位置。难点不在"能看懂图"，而在"看懂之后还能用语言去推理、调用工具、做决策"，这要求跨模态的信息不能在编码过程中丢失或错位。</p>
+      <p>更深的一层难处是<strong>模态不对齐</strong>：一段 3 秒的视频包含的信息量，可能抵得上一千个字；而一个"红色按钮"在图里只占几个像素，却决定用户能不能下单。不同模态的信息密度、时序粒度、噪声模式都不同，强行塞进同一套处理流程，要么图被压得太狠丢了关键细节，要么文字被图带偏产生幻觉。</p>
+      <div class="callout"><strong>为什么重要：</strong>统一表示不是"多接一种输入"那么简单，它决定了模型能否把视觉信号当作推理链条里的一环，而不是孤立的"看图说话"。这直接影响了后面所有应用设计。</div>
 
+      <h2>二、视觉编码器：ViT、CLIP 与 Q-Former 怎么把图变成"词"</h2>
+      <p>要让大模型读图，第一步是把图像切成模型能消化的形式。主流做法是<strong>ViT（Vision Transformer）</strong>：把图片切成若干 16×16 的小块（patch），每块当作一个"视觉词元（visual token）"，像处理句子里的字一样用 Transformer 处理。一张 336×336 的图大约切成 576 个 token，这就是图像在大模型眼里的"字数"。</p>
+      <p>但 ViT 本身不知道"图"和"词"该怎么对应。真正把图文连起来的是<strong>CLIP</strong>：它用海量"图片+描述文字"对做对比学习——同一对图文向量拉近，不同对的推远。训练完后，CLIP 的图像编码器和文本编码器就共享同一个语义空间，于是"猫的照片"和"a cat"自然靠近。2023 年后的 SigLIP 把对比损失换成"图文是否匹配"的二分类 sigmoid 损失，在细粒度对齐上更稳。</p>
+      <p>第三种关键结构是<strong>Q-Former</strong>（BLIP-2 / InstructBLIP 用）：它是一组可学习的"查询向量"，专门负责从 ViT 输出里<strong>抽取与文本任务相关的信息</strong>，把几百个图像 token 压缩成几十个"瓶颈 token"再喂给语言模型。它的价值在于：既减少送入 LLM 的 token 数（省成本），又强迫模型只保留对回答有用的视觉内容。</p>
+      <pre><code># 用 CLIP 计算"图"与"文字"的语义相似度（transformers + torch）
+from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
 
-<p>多模态的突破，是让文字、图像、音频与视频进入同一个语义空间，从而把“看懂”变成“能做事”。当模型能同时处理截图、录音和文档，真正的门槛就从识别内容转向设计权限、延迟与脱敏——能力越丰富，越要把隐私与边界前置。</p>
-</article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+proc  = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+image = Image.open("screenshot.png")
+texts = ["这是一个登录按钮", "这是一张风景照", "这是报错弹窗"]
+
+inputs = proc(text=texts, images=image, return_tensors="pt", padding=True)
+outputs = model(**inputs)
+# image_embeds 与 text_embeds 已在 CLIP 的统一空间，直接点积即可比对
+probs = outputs.logits_per_image.softmax(dim=1)
+print(probs)  # 哪句描述最贴合这张图</code></pre>
+      <table>
+        <thead><tr><th>编码器</th><th>输出形态</th><th>对齐方式</th><th>典型用途</th><th>成本</th></tr></thead>
+        <tbody>
+          <tr><td>ViT</td><td>纯图像 token（无文本概念）</td><td>无跨模态对齐</td><td>分类、检测底模</td><td>低</td></tr>
+          <tr><td>CLIP / SigLIP</td><td>图文同空间向量</td><td>对比学习</td><td>检索、零样本分类、VLM 底座</td><td>中</td></tr>
+          <tr><td>Q-Former</td><td>压缩后的瓶颈 token</td><td>查询抽取+语言模型对齐</td><td>高效 VLM、图文问答</td><td>低（token 少）</td></tr>
+        </tbody>
+      </table>
+
+      <h2>三、VLM 架构与推理流程</h2>
+      <p>把上面的零件拼起来，就是一个<strong>视觉语言模型（VLM）</strong>。典型流程是：图像经 ViT 编码成视觉 token，经 Q-Former（或投影层）对齐到 LLM 的词空间，和用户输入的文本 token 拼接后一起送进大语言模型，由 LLM 生成回答。LLaVA 用轻量投影层把 ViT 输出直接映射进 LLM；Qwen-VL、GLM-4V、DeepSeek-VL 则在更高分辨率、动态分辨率与 OCR 上做了增强。</p>
+      <div class="diagram-card"><span class="diagram-label">VLM 一次推理的数据流</span>
+        <div class="token-line">
+          <span>图像输入</span><b>→</b><span>ViT 切块编码</span><b>→</b><span>Q-Former / 投影对齐</span><b>→</b><span>与文本 token 拼接</span><b>→</b><span>LLM 推理</span><b>→</b><span>文本/动作输出</span>
+        </div>
+        <small>视觉 token 在进入 LLM 前已被压缩和对齐，模型在一个序列里同时"看字"和"看图"再做推理。</small>
+      </div>
+      <p>工程上要分清两种"看图"：<strong>原生多模态模型</strong>（图在预训练阶段就进去了，理解更准，但贵）；<strong>外部视觉描述 + 纯文本 LLM</strong>（先用一个 caption 模型把图转成文字，再交给 LLM）。后者便宜、可控，但会丢失图里没被文字描述出来的细节——比如一个灰色的禁用按钮。</p>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>分辨率是性价比开关。把图强行缩到 224×224 会丢掉截图里的小字和边界；开高分辨率或多图切块（tile）更准，但视觉 token 翻几倍，推理成本和延迟也翻几倍。先按"用户真正需要模型注意什么"选分辨率。</div>
+
+      <h2>四、音频与视频：理解之外还有生成</h2>
+      <p>音频通常先转成<strong>频谱图（spectrogram）</strong>——把声音随时间变化的频率画成一张图，于是就能复用视觉编码器去"读"声音；语音助手类系统则常走 ASR（语音转写）→ LLM → TTS（转语音）的管线，把"听、理解、说"拆成三段低延迟服务。</p>
+      <p>视频是"带时序的图像序列"。做法分两派：一是<strong>采样关键帧</strong>，把若干帧当多张图一起送（省算力但丢动作）；二是<strong>时序模型</strong>（如 VideoMAE、时间注意力）直接建模帧间运动，能识别"开门""摔倒"这类动作，但算力极高。</p>
+      <p>生成方向则是<strong>扩散模型（Diffusion）</strong>的天下：T2I（文生图，如 SDXL、Flux）从噪声逐步去噪出图；T2V（文生视频，如 Sora、可灵、即梦）在时间和空间两个维度同时去噪，难点在于"帧与帧之间物体不能突然消失"。理解模型（VLM）和生成模型（Diffusion）正在合流：先用 VLM 理解需求、做布局规划，再交给 Diffusion 出图，这正是 2025–2026 年设计类工具的主流做法。</p>
+
+      <h2>五、应用设计变化：从"描述图"到"基于图做决策"</h2>
+      <p>入门玩法常停在"描述这张图里有什么"。但真正产生价值的是第二步：<strong>让模型基于图去行动</strong>。区别在哪？</p>
+      <ul>
+        <li><strong>描述图：</strong>"图里是一个红色购物车图标。"——输出一句人话，结束。</li>
+        <li><strong>基于图做决策：</strong>"图里红色购物车在右上角，用户目标是下单，所以下一步应当点击它。"——输出一个可被系统执行的<strong>动作（action）</strong>，如坐标、工具调用或结构化字段。</li>
+      </ul>
+      <p>所以从产品角度，多模态的落点往往是：把截图/文档/视频变成<strong>结构化输出</strong>（字段、坐标、标签、下一步动作），再接进你原有的业务逻辑。会议白板 → 待办清单；仪表盘截图 → 异常指标；商品图 → 类目与标题。模型负责"理解"，你负责"流程"。</p>
+      <pre><code># 让 VLM 输出结构化"下一步动作"，而非自然语言描述
+import json, requests
+
+payload = {
+  "model": "qwen-vl-max",
+  "messages": [{
+    "role": "user",
+    "content": [
+      {"type": "image_url", "image_url": {"url": "https://.../screen.png"}},
+      {"type": "text", "text": "这是结算页截图。请只返回 JSON："
+        "{\"action\":\"click\"|\"type\"|\"none\", \"target\":描述, "
+        "\"coords\":[x,y], \"reason\":一句话}。不要输出多余文字。"}
+    ]
+  }],
+  "response_format": {"type": "json_object"}
+}
+r = requests.post("https://api.example.com/v1/chat/completions",
+                  json=payload, headers={"Authorization": "Bearer KEY"})
+action = json.loads(r.json()["choices"][0]["message"]["content"])
+# 你的业务代码据此调用真实 UI 自动化 / 表单填充</code></pre>
+
+      <h2>六、延迟、成本与模态对齐的坑</h2>
+      <p>把多模态接进生产，真正卡你的往往是下面几件事：</p>
+      <table>
+        <thead><tr><th>坑</th><th>表现</th><th>对策</th></tr></thead>
+        <tbody>
+          <tr><td>视觉 token 过多</td><td>一次请求几千 token，贵且慢</td><td>用 Q-Former 压缩、降分辨率、只截相关区域</td></tr>
+          <tr><td>模态错位</td><td>图里有小字/禁用态，模型忽略</td><td>高分辨率 + OCR 辅助 + 明确提示"注意按钮状态"</td></tr>
+          <tr><td>幻觉</td><td>图里没有的东西被编出来</td><td>要求引用图中区域、输出坐标、接后校验</td></tr>
+          <tr><td>隐私</td><td>截图含 PII 被发往外部模型</td><td>入模前脱敏、本地小模型兜底、明确数据边界</td></tr>
+          <tr><td>长视频成本</td><td>抽帧成千，算力爆炸</td><td>关键帧采样 + 先 ASR 出文字再定位</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>工程取舍：</strong>不是所有场景都需要最贵的原生多模态大模型。文档 OCR 用专用引擎、图表理解用 VLM、实时语音用 ASR 管线——把多模态拆成"哪一步需要哪种理解"，往往比"一张图丢给一个大模型"更准、更省、更可控。</div>
+
+      <p class="article-end">多模态的突破，是让文字、图像、音频与视频进入同一个语义空间，从而把"看懂"变成"能做事"。当模型能同时处理截图、录音和文档，真正的门槛就从"识别内容"转向"设计权限、延迟与脱敏"——能力越丰富，越要把隐私与边界前置。先想清楚模型看完图要产出什么结构化动作，再决定用哪种编码器、什么分辨率。</p>
+
+      <h2>相关阅读</h2>
+      <p>继续深入：<a href="/ai-scenes/">10 个普通人每天都能用到的 AI 场景</a>（把多模态能力落到具体工作流）；<a href="/ai-future/">AI 的下一站：从聊天机器人到工作流操作系统</a>（多模态如何嵌入 Agent）；<a href="/ai-governance/">AI 应用上线前：隐私、安全与治理清单</a>（截图里的 PII 怎么处理）。</p>
+    </article>
+  </main>
+  <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+  <script src="/scripts/metrics.js"></script>
+</body>
+</html>

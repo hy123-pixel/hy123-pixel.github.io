@@ -1,3 +1,85 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="从离线数据集到线上反馈，建立 AI 应用评估体系。"><title>AI 应用不是 Demo：如何建立评估体系 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-eval.svg" alt="AI 应用不是 Demo：如何建立评估体系 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">AI 工程</span><time>2024-08-03 · 9 分钟</time></div><h1>AI 应用不是 Demo：如何建立评估体系</h1><p class="article-lead">模型换得再快，如果没有一套评估方法，你其实不知道产品有没有变好。</p><div class="article-visuals"><figure><img src="/assets/eval-1.svg" alt="AI 评估 核心概念示意图"><figcaption>AI 评估：核心概念与关键组成</figcaption></figure><figure><img src="/assets/eval-2.svg" alt="AI 评估 工作流程示意图"><figcaption>AI 评估：从输入到输出的工作流程</figcaption></figure><figure><img src="/assets/eval-3.svg" alt="AI 评估 实践检查示意图"><figcaption>AI 评估：实践检查与迭代清单</figcaption></figure></div><hr><h2>先定义“好答案”</h2><p>客服问答关注事实正确、语气合适和是否解决问题；代码助手关注能否运行、是否遵守约束；内容生成关注表达质量和品牌一致性。不同任务不能共用一个笼统的“准确率”。</p><h2>三层评估</h2><ol><li><strong>离线数据集：</strong>收集真实问题、参考答案、困难样本和越界样本。</li><li><strong>模型评审：</strong>用规则、另一个模型或人工对答案打分，但要定期抽查评分偏差。</li><li><strong>线上反馈：</strong>观察追问率、人工接管率、用户采纳率和失败原因。</li></ol><div class="callout"><strong>不要只看平均分：</strong>把最容易失败的那 20% 问题单独拉出来，它们往往决定用户是否信任整个产品。</div><h2>一次可执行的迭代</h2><p>每次发布只改一个变量：切分策略、Prompt、模型或工具权限。固定一组回归问题，记录分数变化和失败案例，再决定是否上线。这样才能明确改进的来源。</p><p class="article-end">AI 应用的核心竞争力不是“接上模型”，而是拥有持续发现问题、解释问题并修复问题的能力。</p>
-<p>评估体系的意义不在于一个漂亮的平均分，而在于让你说清"这次改动到底让哪一类问题变好或变差"。固定一组回归样本，每次只改变一个变量，盯住最容易失败的 20%，产品才会持续被人信任。</p>
-</article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从离线数据集到线上反馈闭环，建立 AI 应用的三层评估与完整评估矩阵。">
+  <title>AI 应用不是 Demo：如何建立可量化的评估体系 · hy123-pixel</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="element-theme">
+  <header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header>
+  <main class="el-main article-shell">
+    <article class="el-card article-card">
+      <div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-eval.svg" alt="AI 应用不是 Demo：如何建立评估体系 封面"></div>
+      <div class="post-topline"><span class="el-tag el-tag--primary">AI 工程</span><time>2026-08-05 · 12 分钟</time></div>
+      <h1>AI 应用不是 Demo：如何建立可量化的评估体系</h1>
+      <p class="article-lead">模型换得再快，没有评估方法，你其实不知道产品有没有变好。本文给出“先定义好答案、再分层评估、最后闭环”的落地框架，并扩展成一张完整的评估矩阵。</p>
+      <div class="article-visuals">
+        <figure><img src="/assets/eval-1.svg" alt="AI 评估 核心概念示意图"><figcaption>AI 评估：定义“好答案”的维度</figcaption></figure>
+        <figure><img src="/assets/eval-2.svg" alt="AI 评估 工作流程示意图"><figcaption>AI 评估：三层评估与反馈闭环</figcaption></figure>
+        <figure><img src="/assets/eval-3.svg" alt="AI 评估 实践检查示意图"><figcaption>AI 评估：评估矩阵的构建清单</figcaption></figure>
+      </div>
+      <div class="article-meta"><span>难度：进阶</span><span>适合：负责 AI 产品上线的工程师与团队负责人</span></div>
+      <hr>
+      <h2>先定义“好答案”：任务类型决定验收标准</h2>
+      <p>评估的第一性错误是“所有任务共用一个准确率”。任务类型不同，验收标准天差地别：<strong>事实问答</strong>看答案是否正确、引用是否真实；<strong>代码助手</strong>看能否运行、是否遵守约束、是否引入回归；<strong>内容生成</strong>看表达质量与品牌一致性；<strong>分类/抽取</strong>看标签 F1 与字段召回。落地动作是写一份验收清单（acceptance criteria），把“好”从形容词变成可勾选的条目。没有这步，后面所有分数都是空中楼阁。</p>
+
+      <h2>三层评估：单元、集成、线上</h2>
+      <p><strong>第一层·离线单元评估</strong>：用黄金集（golden set）跑单条样本，核对输出。关键是构建有代表性的数据集——不仅要有正常样本，还要有边界样本（模糊问题）、对抗样本（诱导幻觉）和越界样本（应拒绝回答的）。<strong>第二层·集成评估</strong>：把 RAG 检索、工具调用、Prompt 串起来端到端测，验证“链路整体”而非单点。这层最容易被忽略，却最常暴露组合 bug。<strong>第三层·线上评估</strong>：观察真实用户信号——追问率（一次没答好）、人工接管率、采纳率、失败原因归类。</p>
+      <div class="callout"><strong>为什么重要：</strong>离线高分 ≠ 线上好用。集成层验证链路，线上层验证真实价值，三层缺一不可。</div>
+
+      <h2>扩展成一张完整评估矩阵</h2>
+      <p>把三层评估再按“指标类型 × 阶段”展开，得到可分配到人、可纳入 CI 的矩阵。下面这张表比“准确率”信息密度高得多：</p>
+      <table>
+        <thead><tr><th>阶段</th><th>指标</th><th>衡量什么</th><th>采集方式</th></tr></thead>
+        <tbody>
+          <tr><td>离线</td><td>准确率 / F1</td><td>单样本是否正确</td><td>黄金集 + 规则/评审</td></tr>
+          <tr><td>离线</td><td>幻觉率</td><td>是否编造上下文外信息</td><td>LLM-as-judge 忠实度</td></tr>
+          <tr><td>集成</td><td>检索召回率</td><td>正确答案是否被召回</td><td>标注片段命中</td></tr>
+          <tr><td>集成</td><td>端到端成功率</td><td>整条链路跑通比例</td><td>脚本化冒烟测试</td></tr>
+          <tr><td>线上</td><td>P95 延迟</td><td>响应慢尾</td><td>网关埋点</td></tr>
+          <tr><td>线上</td><td>单条成本</td><td>每次调用的 token 花费</td><td>用量账单聚合</td></tr>
+          <tr><td>线上</td><td>采纳率 / 接管率</td><td>用户是否真用</td><td>前端埋点</td></tr>
+          <tr><td>回归</td><td>与基线 diff</td><td>本次改动是否退步</td><td>CI 对比黄金集</td></tr>
+        </tbody>
+      </table>
+
+      <h2>LLM-as-judge：省成本的评审，也有偏差</h2>
+      <p>用另一个模型当评委（LLM-as-judge）能大幅降低人工成本，但有三个已知偏差要管理：<strong>位置偏差</strong>（偏好排在前面的答案）、<strong>冗长偏差</strong>（觉得越长越对）、<strong>自我偏好</strong>（偏好与自己风格相近的回答）。对策：评审 prompt 要求“先给证据再给分”、对候选做位置随机化、用强模型评弱模型、并定期用人工标注做<strong>校准</strong>——算评审模型与人工的一致性（如 Cohen's κ），低于阈值就不可信。</p>
+      <pre><code># LLM-as-judge 的稳健写法（结构化输出 + 证据）
+from pydantic import BaseModel
+
+class Verdict(BaseModel):
+    faithful: bool          # 答案是否可由上下文推导
+    reason: str             # 必须引用具体片段，杜绝空判
+    score: int              # 1-5
+
+def judge(question, context, answer) -> Verdict:
+    return llm.structured(
+        system="你是严格评审。只依据给出的 context 判断，"
+               "禁止凭常识补事实；先写 reason 再给 score。",
+        prompt=f"问：{question}\n上下文：{context}\n答：{answer}",
+        schema=Verdict,
+    )
+# 上线前用 50 条人工标注校准，κ 不足 0.6 则回炉调 prompt</code></pre>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>别让评审模型看“这是 A 还是 B”的明文标签——位置偏差会让它无脑选第一个。打乱顺序 + 要求给证据，是低成本去偏的两招。</div>
+
+      <h2>指标清单：除了准确率还看什么</h2>
+      <p>真正决定产品生死的指标往往不是准确率：<strong>幻觉率</strong>直接毁掉信任；<strong>延迟</strong>（尤其 P95）决定体验上限；<strong>成本</strong>（单次 token 花费）决定能否规模化；<strong>回归率</strong>衡量“这次发布是否比上次差”。建议把 P95 延迟和单条成本做成看板，和准确率并列——一个又准又慢又贵的系统，常常无法上线。</p>
+
+      <h2>评估自动化与 CI 集成</h2>
+      <p>评估要能跑在每次提交上，否则等于没有。做法：把黄金集纳入仓库，写一条 <code>pytest</code> 用例循环跑样本，断言“幻觉率低于阈值、端到端成功率不低于基线”。CI 里对分数做 diff，退步超 2% 直接红。这样每次改动（切分策略/Prompt/模型/工具权限）的效果都被量化，改进来源一目了然。</p>
+
+      <h2>线上监控与反馈闭环</h2>
+      <p>线上不是终点，是下一轮评估的起点。把用户的“点踩/追问/人工接管/编辑后的答案”回收到黄金集，长尾失败样本由此持续补充。闭环节奏是：线上发现 bad case → 归入回归集 → 离线修复 → CI 验证 → 灰度上线 → 监控新 bad case。评估体系的意义，正在于让你说清“这次改动到底让哪一类问题变好或变差”。</p>
+      <div class="callout"><strong>小贴士：</strong>把最易失败的 20% 长尾问题单独建集。它们量小但决定信任，平均分掩盖不了它们的恶化。</div>
+      <p class="article-end">评估体系不是追求一个漂亮的平均分，而是让每一次发布都可解释、可回归、可信任。固定一组黄金集，每次只改一个变量，盯住长尾与延迟成本，产品才会持续被人信赖。</p>
+      <hr>
+      <p><strong>相关阅读：</strong><a href="/ai-rag/">RAG 不是魔法：一条可靠检索链路的工程拆解</a> · <a href="/ai-coding/">AI 编程：从补全代码到协作式开发</a> · <a href="/ai-local/">本地模型还有意义吗：开源与端侧 AI 的机会</a></p>
+    </article>
+  </main>
+  <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+  <script src="/scripts/metrics.js"></script>
+</body>
+</html>

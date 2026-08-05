@@ -1,3 +1,85 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="AI 编程助手的正确使用方式。"><title>AI 编程：从补全代码到协作式开发 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-coding.svg" alt="AI 编程：从补全代码到协作式开发 封面"></div><div class="post-topline"><span class="el-tag">AI 编程</span><time>2024-08-16 · 8 分钟</time></div><h1>AI 编程：从补全代码到协作式开发</h1><p class="article-lead">AI 编程助手最擅长的不是替你设计整个系统，而是缩短“想法—实现—验证”的循环。</p><div class="article-visuals"><figure><img src="/assets/coding-1.svg" alt="AI 编程 核心概念示意图"><figcaption>AI 编程：核心概念与关键组成</figcaption></figure><figure><img src="/assets/coding-2.svg" alt="AI 编程 工作流程示意图"><figcaption>AI 编程：从输入到输出的工作流程</figcaption></figure><figure><img src="/assets/coding-3.svg" alt="AI 编程 实践检查示意图"><figcaption>AI 编程：实践检查与迭代清单</figcaption></figure></div><hr><h2>把 AI 放在正确的位置</h2><p>让 AI 生成一段孤立函数很容易，让它理解一个混乱的仓库就困难得多。先让它阅读目录、运行测试、描述现有行为，再着手修改，结果通常会稳定很多。</p><h2>四种高价值用法</h2><ol><li>根据接口契约生成样板代码和测试。</li><li>解释陌生代码，整理模块边界和调用关系。</li><li>根据失败日志定位可能原因，提出最小修复。</li><li>审查边界条件、权限和异常处理。</li></ol><h2>不要跳过验证</h2><p>AI 生成的代码必须经过编译、测试、静态检查和人工审阅。尤其要警惕它“顺手”改变 API、吞掉异常或引入不必要的依赖。</p><div class="callout"><strong>推荐工作流：</strong>先让 AI 读懂，再让它提出计划；一次只改一个小范围，验证通过后再继续。</div><p class="article-end">AI 编程不是把键盘交给模型，而是让开发者把更多时间放在设计、判断和验证上。</p>
-<p>AI 写出的代码最终要由测试、评审和上线的稳定性来兑现价值。把模型当成一个必须被验证的协作者：每次改动都编译、跑测试、做静态检查，再让人确认。这样你交付的不是更多代码，而是更可信的代码。</p>
-</article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI 编程助手的三种模式、上下文工程、Spec 驱动工作流与测试评审实战。">
+  <title>AI 编程：从补全代码到协作式开发的工程方法论 · hy123-pixel</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="element-theme">
+  <header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header>
+  <main class="el-main article-shell">
+    <article class="el-card article-card">
+      <div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-coding.svg" alt="AI 编程：从补全代码到协作式开发 封面"></div>
+      <div class="post-topline"><span class="el-tag el-tag--primary">AI 编程</span><time>2026-08-05 · 14 分钟</time></div>
+      <h1>AI 编程：从补全代码到协作式开发的工程方法论</h1>
+      <p class="article-lead">AI 编程助手最擅长的不是替你设计整个系统，而是缩短“想法—实现—验证”的循环。本文讲清三种模式的边界、上下文该怎么喂、以及 Spec 驱动的安全工作流。</p>
+      <div class="article-visuals">
+        <figure><img src="/assets/coding-1.svg" alt="AI 编程 核心概念示意图"><figcaption>AI 编程：三种模式的能力边界</figcaption></figure>
+        <figure><img src="/assets/coding-2.svg" alt="AI 编程 工作流程示意图"><figcaption>AI 编程：Spec 驱动的协作工作流</figcaption></figure>
+        <figure><img src="/assets/coding-3.svg" alt="AI 编程 实践检查示意图"><figcaption>AI 编程：验证与评审的检查清单</figcaption></figure>
+      </div>
+      <div class="article-meta"><span>难度：进阶</span><span>适合：日常用 AI 写代码的开发者和团队</span></div>
+      <hr>
+      <h2>三种模式，能力边界各不同</h2>
+      <p>把 AI 编程粗分三类，能避免“拿锤子找钉子”：<strong>补全模式</strong>（Copilot 类行内补全）最擅长局部、低决策密度的重复劳动——样板、正则、测试用例骨架，延迟低、上下文小；但它看不到全局，跨文件重构基本无能为力。<strong>聊天模式</strong>（Chat）擅长解释陌生代码、写单文件函数、根据报错给修复建议，决策密度中等，但缺乏“执行权”，改完要你手动落地。<strong>Agent 模式</strong>（Claude Code、Cursor Agent、WorkBuddy 类）能读目录、跑命令、改多文件、运行测试并自我修正，决策密度最高，代价是容易“自作主张”——改了你没让它改的文件、顺手加了依赖。</p>
+      <table>
+        <thead><tr><th>维度</th><th>补全</th><th>聊天</th><th>Agent</th></tr></thead>
+        <tbody>
+          <tr><td>上下文范围</td><td>当前文件</td><td>手动选取</td><td>整个仓库</td></tr>
+          <tr><td>执行权</td><td>无</td><td>无</td><td>有（危险）</td></tr>
+          <tr><td>最佳用途</td><td>样板/重复</td><td>解释/单点</td><td>多文件任务</td></tr>
+          <tr><td>主要风险</td><td>低</td><td>低</td><td>越权改动</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>为什么重要：</strong>先选模式再开工。让 Agent 去写一行正则是浪费，让补全去重构模块是强人所难。</div>
+
+      <h2>上下文工程：喂什么，比模型多大更关键</h2>
+      <p>Agent 的产出质量，很大程度取决于你喂给它的上下文是否“刚好够”。太多会稀释注意力、撑爆窗口；太少它会瞎猜。经验法则：明确给出<strong>相关的接口契约 / 类型定义 / 现有调用点</strong>，比泛泛说“在 UserService 里加个方法”强十倍。历史对话要裁剪——只保留与本任务相关的决策与报错，别把整段闲聊塞进去。善用 <code>@file</code>、<code>@symbol</code> 这类引用把“精确片段”而非“整个大文件”喂进去。</p>
+      <p>一个反模式是“把整个 repo 丢给模型”。正确的上下文分层是：系统级（架构约定/编码规范）→ 任务级（本次改动涉及的文件与接口）→ 执行级（运行结果、测试报错）。层级清晰，模型才不容易跑偏。</p>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>Agent 改完后，先 git diff 比对它动了哪些文件。曾经有团队让 Agent“顺手”升级了某个依赖，结果 CI 全红。把改动范围限制在显式声明的文件，是低成本防护。</div>
+
+      <h2>Spec 驱动开发：先写规格，再写代码</h2>
+      <p>Spec-driven 的核心是把“要做什么”先用自然语言（甚至伪代码）写清楚，让模型围绕一份明确契约工作，而不是边做边猜。典型流程：写一份 <code>spec.md</code> 描述目标、接口、边界条件、验收标准 → 让模型据此产出实现计划 → 你确认计划 → 模型分步实现并提交。这样每次改动都有据可查，回归也有基准。</p>
+      <pre><code># spec.md 片段示例
+## 目标
+为 POST /orders 增加“库存不足时自动排队”的能力。
+
+## 接口约束
+- 请求体新增字段 `queueWhenOutOfStock: boolean`
+- 返回 202 且 `orderId`，不阻塞主流程
+- 并发下单需幂等（同 requestId 重复提交返回首次结果）
+
+## 验收标准
+- 单测覆盖：库存充足 / 不足排队 / 重复提交
+- 集成测试：模拟库存服务超时，断言订单进入队列而非失败
+- 不修改既有 GET /orders 的响应结构</code></pre>
+
+      <h2>工作流：一张图看清协作节奏</h2>
+      <div class="diagram-card"><span class="diagram-label">Spec 驱动 AI 编程工作流</span>
+        <div class="token-line">
+          <span>写 Spec</span><b>→</b><span>模型出计划</span><b>→</b><span>人工确认</span><b>→</b><span>Agent 分步实现</span><b>→</b><span>跑测试/静态检查</span><b>→</b><span>人工评审 diff</span><b>→</b><span>合并</span>
+        </div>
+        <small>每个箭头都是一次“验证闸门”；模型只在人工确认的范围内执行，越权改动在此被拦下。</small>
+      </div>
+
+      <h2>测试生成与代码评审的实战</h2>
+      <p>模型最被低估的能力是<strong>测试生成</strong>。给定函数签名和边界条件，它能快速产出单元测试用例骨架，你只需补断言和 fixture。但警惕它“为覆盖率而写测试”——只断言 <code>not null</code>、不验证业务结果，这种测试是假的。评审侧，让模型扮演 reviewer：检查异常是否被吞掉、权限校验是否缺失、是否有 N+1 查询、是否引入了不必要的依赖。把这类清单固化成 prompt，比一次性提问稳定得多。</p>
+      <div class="callout"><strong>小贴士：</strong>让模型先“描述现有行为再动手改”，往往比直接说“修这个 bug”更准。它理解错了，你能在计划阶段拦下，而不是在 PR 里才看到离谱改动。</div>
+
+      <h2>主流工具差异与配置要点</h2>
+      <p>工具选择取决于“你想要多少自动化，以及愿意交出多少控制权”：<strong>Cursor</strong> 强调编辑器内多文件 Agent 与索引体验，适合在 IDE 里全程协作；<strong>Claude Code</strong> 偏终端/CLI，擅长把仓库当整体、自主跑命令与测试，适合后端与脚本任务；<strong>WorkBuddy 类</strong>把 Agent 嵌进更完整的工作流（任务管理、多工具编排），适合团队级自动化。配置上的共性要点：限定可访问的文件/命令白名单、开启确认模式（危险操作需人工批准）、把编码规范与测试命令写进项目级配置，让每次会话都自带上下文。</p>
+
+      <h2>安全：别让便利变成事故</h2>
+      <p>三个真实风险。<strong>秘钥泄露</strong>：Agent 读仓库时可能把 <code>.env</code> 内容贴进日志或回复，务必在上下文里排除密钥文件、用 git-secrets 扫描。<strong>许可证风险</strong>：模型可能“记忆式”吐出某 GPL 代码片段，商用需许可证合规检查（如 FOSSA / ScanCode）。<strong>能力评测</strong>：别只看 demo，用 <strong>SWE-bench</strong> 这类真实 GitHub issue→PR 基准衡量模型解决真实工程问题的能力，它比“让它写一个快排”更接近生产难度。</p>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>把 AI 生成代码直接合并进主干是高危操作。所有模型改动必须过编译、测试、静态检查、人工 diff 四道关，再谈合并。</div>
+      <p class="article-end">AI 编程不是把键盘交给模型，而是把更多时间还给设计、判断和验证。选对模式、喂对上下文、用 Spec 框住范围、拿测试与评审兑现价值——你交付的不是更多代码，而是更可信的代码。</p>
+      <hr>
+      <p><strong>相关阅读：</strong><a href="/ai-rag/">RAG 不是魔法：一条可靠检索链路的工程拆解</a> · <a href="/ai-eval/">AI 应用不是 Demo：如何建立评估体系</a> · <a href="/ai-local/">本地模型还有意义吗：开源与端侧 AI 的机会</a></p>
+    </article>
+  </main>
+  <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+  <script src="/scripts/metrics.js"></script>
+</body>
+</html>

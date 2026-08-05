@@ -1279,6 +1279,15 @@ a {
 .view-btn:hover { color: var(--el-blue); }
 .view-btn.is-active { background: var(--el-blue); color: #fff; }
 .view-btn:focus-visible { outline: 2px solid var(--el-blue); outline-offset: 1px; }
+
+/* 文章列表页：按标签筛选条 */
+.tag-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 26px; }
+.tag-pill { -webkit-appearance: none; appearance: none; border: 1px solid var(--line); background: var(--surface-strong); color: var(--muted); padding: 6px 14px; border-radius: 999px; font: inherit; font-size: 13px; line-height: 1.4; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.tag-pill:hover { border-color: var(--el-blue); color: var(--el-blue); }
+.tag-pill.is-active { background: var(--el-blue); border-color: var(--el-blue); color: #fff; }
+.tag-pill .cnt { font-size: 11px; opacity: .7; margin-left: 6px; }
+.tag-pill:focus-visible { outline: 2px solid var(--el-blue); outline-offset: 1px; }
+@media (max-width: 640px) { .tag-filter { gap: 6px; } .tag-pill { padding: 5px 11px; font-size: 12px; } }
 .post-card { display: flex; flex-direction: column; min-height: 250px; padding: 0; overflow: hidden; transition: transform .2s, box-shadow .2s, border-color .2s; }
 .post-card:hover { border-color: #b3d8ff; box-shadow: 0 10px 26px rgba(64, 158, 255, .14); transform: translateY(-4px); }
 .post-card-featured { border-top: 3px solid var(--el-blue); }

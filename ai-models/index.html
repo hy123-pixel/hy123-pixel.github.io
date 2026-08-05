@@ -1,2 +1,96 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="对比 GPT、Claude、Gemini、DeepSeek 等主流模型的能力、价格与适用场景。"><title>主流 AI 模型怎么选：能力、价格与工作场景对比 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-models.svg" alt="主流 AI 模型怎么选：能力、价格与工作场景对比 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">模型选型</span><time>2024-08-22 · 15 分钟</time></div><h1>主流 AI 模型怎么选：能力、价格与工作场景对比</h1><p class="article-lead">没有哪一个模型能永远排第一。真正关键的是：任务难度、上下文长度、响应速度、数据边界与预算，是否和该模型的特长相匹配。</p><div class="article-visuals"><figure><img src="/assets/models-1.svg" alt="模型选型 核心概念示意图"><figcaption>模型选型：核心概念与关键组成</figcaption></figure><figure><img src="/assets/models-2.svg" alt="模型选型 工作流程示意图"><figcaption>模型选型：从输入到输出的工作流程</figcaption></figure><figure><img src="/assets/models-3.svg" alt="模型选型 实践检查示意图"><figcaption>模型选型：实践检查与迭代清单</figcaption></figure></div><hr><h2>先看结论：给不同人的快速推荐</h2><div class="callout"><strong>只想上手：</strong>先用 ChatGPT、Claude、Gemini 或 DeepSeek 的免费聊天版本，连续完成一周真实任务；<strong>要接入产品：</strong>再依据 API 价格与稳定性，做一轮小规模的 A/B 测试。</div><ul><li><strong>复杂推理、代码审查、Agent 原型：</strong>优先选 GPT-5 或 Claude Opus 4.7。</li><li><strong>长文档、代码库协作、稳定写作：</strong>推荐 Claude Sonnet 4.6。</li><li><strong>图片、视频、超长上下文与 Google 生态：</strong>Gemini 3.1 Pro。</li><li><strong>高并发、翻译、批量抽取：</strong>Gemini 3.1 Flash-Lite 或 DeepSeek V4 Flash。</li><li><strong>中文性价比与工具调用：</strong>DeepSeek V4 Flash / V4 Pro。</li></ul><h2>一张表看懂定位</h2><div class="table-wrap"><table class="model-table"><thead><tr><th>模型</th><th>强项</th><th>注意点</th><th>API 价格 / 1M tokens</th><th>适合工作</th></tr></thead><tbody><tr><td><strong>GPT-5</strong></td><td>推理、代码、工具调用、结构化输出</td><td>输出价格较高；音视频需专用模型</td><td>输入 $1.25<br>输出 $10</td><td>复杂分析、Agent、代码审查</td></tr><tr><td><strong>Claude Opus 4.7</strong></td><td>深度推理、长代码任务、复杂写作</td><td>价格高；控制调用频率</td><td>输入 $5<br>输出 $25</td><td>大型重构、研究报告</td></tr><tr><td><strong>Claude Sonnet 4.6</strong></td><td>质量、速度、成本平衡</td><td>极限推理不如 Opus</td><td>输入 $3<br>输出 $15</td><td>日常开发、知识库</td></tr><tr><td><strong>Gemini 3.1 Pro</strong></td><td>多模态、长上下文、Google 生态</td><td>超过 200k tokens 后价格上升</td><td>≤200k：输入 $2 / 输出 $12</td><td>视频图片、长资料、研究</td></tr><tr><td><strong>Gemini 3.1 Flash-Lite</strong></td><td>低延迟、高吞吐、翻译</td><td>复杂任务上限较低</td><td>输入 $0.25<br>输出 $1.50</td><td>批处理、客服路由</td></tr><tr><td><strong>DeepSeek V4 Flash</strong></td><td>中文、思考模式、工具调用、成本</td><td>高峰价格政策可能变化</td><td>输入 $0.14<br>输出 $0.28</td><td>中文应用、批量任务</td></tr><tr><td><strong>DeepSeek V4 Pro</strong></td><td>更强推理与 1M 上下文</td><td>生态和可用性需评估</td><td>输入 $0.435<br>输出 $0.87</td><td>低成本深度推理</td></tr></tbody></table></div><p class="table-note">以上为官方 API 的美元标价，按每百万 token 计算；缓存、Batch、区域与高峰时段都可能改变实际账单。本文价格记录于 2026-08-04，生产采购前请以官方页面为准。</p><h2>能力差异，应该怎么理解</h2><h3>推理能力不是“会不会聊天”</h3><p>真正拉开差距的是多步任务：读懂约束、拆解问题、调用工具、发现错误，再整理成可检查的交付物。请用一组带标准答案的真实任务去测试，不要仅凭某一次回答就下结论。</p><h3>上下文长，不等于一定能读懂</h3><p>长上下文适合放入资料，但“能放进去”和“能准确引用”是两回事。长文档仍需要目录、分块、引用位置与 RAG；上下文越长，输入成本与延迟往往也越高。</p><h3>多模态要看输入与输出</h3><p>做会议纪要、商品图片审核、视频问答这类任务时，先确认模型支持的模态、文件大小、时长与输出格式。</p><h2>按工作场景选择</h2><div class="scene-list"><div><b>写作与改稿</b><strong>Claude Sonnet / GPT-5</strong><p>适合维持语气、遵循结构并反复修改。</p></div><div><b>编程与代码库</b><strong>Claude Sonnet / GPT-5</strong><p>先阅读项目约定，再分小步修改并运行测试。</p></div><div><b>图片、视频、资料研究</b><strong>Gemini 3.1 Pro</strong><p>跨文字、图片、视频综合判断，关键事实仍需人工确认。</p></div><div><b>客服与批量处理</b><strong>Flash-Lite / V4 Flash</strong><p>将分类、抽取、改写交给便宜模型，复杂问题再向上升级。</p></div><div><b>复杂 Agent</b><strong>GPT-5 / Claude Opus</strong><p>需配合清晰的工具、权限、超时与回滚机制。</p></div><div><b>隐私敏感数据</b><strong>本地模型或合规云端</strong><p>先确认数据保留、训练用途、区域与审计政策。</p></div></div><h2>一个实用的混合路由方案</h2><pre>用户问题 → 规则判断任务类型 → 简单任务用 Flash-Lite/V4 Flash → 普通问答用 Sonnet/GPT-5 → 多模态用 Gemini Pro → 高风险 Agent 用 GPT-5/Opus 并人工确认</pre><p>这种做法称为模型路由：用便宜模型覆盖大多数请求，把昂贵的模型留给真正困难的任务。上线前，请记录 token、延迟、错误率与人工修改率，再据此调整路由。</p><h2>不要只比较价格，还要比较总成本</h2><ol><li><strong>输出长度：</strong>先要结论，再按需展开。</li><li><strong>重试次数：</strong>便宜模型若频繁重试，未必更省。</li><li><strong>工程接入：</strong>结构化输出、工具调用、SDK、限流与日志都会影响成本。</li><li><strong>数据与合规：</strong>区域、保留时间与训练政策，可能比 token 差价更重要。</li></ol><h2>官方价格与文档</h2><p><a href="https://developers.openai.com/api/docs/models/gpt-5">OpenAI GPT-5</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic Claude Pricing</a> · <a href="https://ai.google.dev/gemini-api/docs/pricing">Google Gemini Pricing</a> · <a href="https://api-docs.deepseek.com/quick_start/pricing/">DeepSeek Pricing</a></p><p class="article-end">最好的模型，不是榜单上分数最高的那个，而是能在你的数据、预算与工作流中稳定交付的那个。</p>
-</article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="对比 GPT-5、Claude 4、Gemini 2.5、DeepSeek R1/V3、Llama 4、Qwen3 等主流模型的能力、价格与选型策略。">
+  <title>主流 AI 模型怎么选：能力、价格与工作场景对比 · hy123-pixel</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="element-theme">
+  <header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header>
+  <main class="el-main article-shell">
+    <article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-models.svg" alt="主流 AI 模型怎么选：能力、价格与工作场景对比 封面"></div>
+      <div class="post-topline"><span class="el-tag el-tag--primary">模型选型</span><time>2026-08-05 · 14 分钟</time></div>
+      <h1>主流 AI 模型怎么选：能力、价格与工作场景对比</h1>
+      <p class="article-lead">没有哪个模型永远排第一。真正关键的是：任务难度、上下文长度、响应速度、数据边界与预算，是否和该模型的特长相匹配。这篇文章给你一份 2025–2026 的主流定位、定价逻辑与可执行的选型决策树。</p>
+      <div class="article-visuals">
+        <figure><img src="/assets/models-1.svg" alt="模型选型 核心概念示意图"><figcaption>选型四维度：能力、价格、延迟、数据边界</figcaption></figure>
+        <figure><img src="/assets/models-2.svg" alt="模型选型 工作流程示意图"><figcaption>路由策略：先判难度，再选模型</figcaption></figure>
+        <figure><img src="/assets/models-3.svg" alt="模型选型 实践检查示意图"><figcaption>实践检查：benchmark、成本与真实 A/B</figcaption></figure>
+      </div>
+      <div class="article-meta"><span>难度：进阶</span><span>适合：要做模型选型与成本控制的开发者 / 团队</span></div>
+      <hr>
+      <h2>01 · 2025–2026 主流模型定位</h2>
+      <p>下面是一份面向工程落地的“特长地图”（具体版本号与价格以厂商当期文档为准，此处给定位与量级）。闭源旗舰拼综合上限与工具生态；开源/开放权重模型拼可私有部署与单位成本；推理模型拼深度思考，通用模型拼速度与便宜。</p>
+      <table>
+        <thead><tr><th>模型</th><th>定位</th><th>擅长</th><th>典型场景</th></tr></thead>
+        <tbody>
+          <tr><td>GPT-5 / 4o 级</td><td>闭源全能旗舰</td><td>通用、多模态、工具生态</td><td>综合助手、Agent、插件生态</td></tr>
+          <tr><td>Claude 4 / 3.5 级</td><td>长上下文 + 稳定写作</td><td>长文档、代码库、严谨写作</td><td>代码审查、长文协作、Agent</td></tr>
+          <tr><td>Gemini 2.5 级</td><td>超长上下文 + 多模态</td><td>百万级上下文、图/视频、Google 生态</td><td>超大文档、多模态检索</td></tr>
+          <tr><td>DeepSeek R1 / V3</td><td>高性价比 + 强推理</td><td>推理任务、API 低价、可自部署</td><td>批量推理、私有化、成本敏感</td></tr>
+          <tr><td>Llama 4 / Qwen3 / GLM</td><td>开放权重</td><td>私有部署、可微调、合规可控</td><td>内网系统、数据不出域</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>小贴士：</strong>“最新最大”不等于“最适合你”。很多生产流量里跑得最多的，反而是便宜的 Flash / Mini / Lite 小模型——旗舰只留给真正难的 10%。</div>
+
+      <h2>02 · 推理模型 vs 通用对话模型</h2>
+      <p>推理模型（如 OpenAI o 系列、DeepSeek R1）在回答前会做“长链思考”，先把问题拆开、试错、再给结论，因此数学、代码、复杂规划明显更强；代价是<strong>延迟高、贵、且不适合闲聊</strong>。通用对话模型（如 4o、Sonnet、Gemini Flash）即问即答，便宜又快，适合摘要、改写、分类、简单抽取。</p>
+      <p>判断边界很简单：凡需要“多步推导、严谨正确率”的（证明、调 bug、数据分析），上推理模型；凡“语义通顺即可”的，用通用模型。把推理模型拿去写营销文案，是既慢又贵的浪费。</p>
+
+      <h2>03 · 定价结构：输入 / 输出 / 缓存命中</h2>
+      <p>API 价格通常分三档：<strong>输入 token</strong>（你发的提示）、<strong>输出 token</strong>（模型生成的）、以及<strong>缓存命中（cache hit）</strong>的优惠价。关键点在于：输出普遍比输入贵 3–4 倍，且长上下文里反复发送的固定系统提示，能通过“提示缓存（prompt caching）”大幅降费——命中缓存的输入按折扣计（有时低至 1/10）。</p>
+      <p>总成本示例：假设系统提示 2k token（缓存命中，单价 0.01）、每轮用户问题 0.5k token（输入 0.1）、模型回 1k token（输出 0.4）。1000 次调用——</p>
+      <pre><code>不缓存： (2k + 0.5k) × 0.1 + 1k × 0.4 = 250 + 400 = 650 单位/千次
+开缓存： 2k × 0.01 + 0.5k × 0.1 + 1k × 0.4 = 20 + 50 + 400 = 470 单位/千次
+# 缓存把固定提示成本砍掉约 80%，请求越多省得越多</code></pre>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>别忘了“失败重试”也在计费。一个输出校验不通过的请求，可能已经被扣了输入+输出的钱。把可缓存的指令前置、减少无效重试，比压单价更立竿见影。</div>
+
+      <h2>04 · 路由策略：按难度 / 延迟 / 成本做模型路由</h2>
+      <p>成熟系统的做法不是“全用一个模型”，而是<strong>路由（routing）</strong>：先用一个便宜小模型判断任务难度，难的转旗舰、易的留小模型。这样 90% 的流量走低价通道，只有真正难的 10% 消耗旗舰预算。</p>
+      <pre><code>def route(task: dict) -> str:
+    # 1) 用轻量分类器先判难度
+    level = cheap_model.classify(task["text"])      # easy | medium | hard
+    # 2) 按难度 + 延迟要求选模型
+    if task.get("realtime") and level != "hard":
+        return "gemini-flash-lite"                   # 要快且不难
+    if level == "hard" and task.get("needs_reason"):
+        return "deepseek-r1" if cost_sensitive else "gpt-5"
+    if task.get("long_doc"):
+        return "claude-opus"                          # 长上下文稳定写作
+    return "gpt-4o"                                   # 默认通用</code></pre>
+      <div class="diagram-card"><span class="diagram-label">ROUTING</span>
+        <div class="token-line">
+          <span>请求</span><b>→</b><span>难度分类</span><b>→</b><span>易:小模型</span><b>·</b><span>难:旗舰/推理</span>
+        </div>
+        <small>90% 流量走低价通道，只把难的留给贵模型</small>
+      </div>
+
+      <h2>05 · 关键 benchmark 怎么读</h2>
+      <p>MMLU（通用知识多选）、GPQA（研究生级科学推理）、SWE-bench（真实 GitHub issue 修 bug）是常被引用的三项。但<strong>它们不代表一切</strong>：MMLU 接近饱和、易被“刷分”污染；GPQA 只测窄域推理；SWE-bench 贴近工程却只覆盖代码。更关键的是：benchmark 不等于你的业务分布。正确读法是把它当“能力下限的参考”，真正决策靠你自己的任务集做 A/B。</p>
+
+      <h2>06 · 上下文、多模态、函数调用的实际影响</h2>
+      <p>三个常被忽视、却直接决定“能不能用”的能力：<strong>上下文长度</strong>——标称 100 万 token 不等于有效利用，超长时注意力会稀释，真实可用长度常低于标称；<strong>多模态</strong>——要处理图片/视频/表格才需要，纯文本任务别为它多付费；<strong>函数调用（tool use）</strong>——做 Agent 时必看，不同模型的 tool schema 遵循度与并行调用能力差异明显，直接决定编排复杂度。</p>
+      <div class="callout"><strong>为什么重要：</strong>选模型时先列“必须满足的能力清单”（如：必须支持 128k 上下文 + 稳定 function calling），再在清单内比价格，而不是反过来。</div>
+
+      <h2>07 · 选型决策树（直接可用）</h2>
+      <table>
+        <thead><tr><th>如果你的首要约束是…</th><th>优先看</th><th>备选</th></tr></thead>
+        <tbody>
+          <tr><td>深度推理 / 复杂代码</td><td>DeepSeek R1 / GPT-5</td><td>Claude Opus 4</td></tr>
+          <tr><td>长文档 / 稳定写作</td><td>Claude 4 系</td><td>Gemini 2.5 Pro</td></tr>
+          <tr><td>超长上下文 / 多模态</td><td>Gemini 2.5 Pro</td><td>GPT-5（多模态）</td></tr>
+          <tr><td>成本敏感 / 高并发</td><td>DeepSeek V3 / Gemini Flash</td><td>Qwen3 / Llama 4 自部署</td></tr>
+          <tr><td>数据不出域 / 合规</td><td>Llama 4 / Qwen3 / GLM 私有化</td><td>企业隔离版闭源</td></tr>
+        </tbody>
+      </table>
+      <p class="article-end">选型不是追新，而是把“任务难度、延迟、成本、数据边界”四件事卡进模型的特长里。先路由、再缓存、用真实任务 A/B，比任何排行榜都可靠。</p>
+      <hr>
+      <h2>相关阅读</h2>
+      <p>把选型落回使用：<a href="/ai-llm/">从 0 开始理解大语言模型</a>（看懂能力背后的原理）、<a href="/ai-prompt/">Prompt 工程</a>（写好与模型交互的提示）、<a href="/ai-start/">第一次使用 AI，先理解这 7 件事</a>（建立正确使用心智）。</p>
+    </article>
+  </main>
+  <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
+  <script src="/scripts/metrics.js"></script></body>
+</html>

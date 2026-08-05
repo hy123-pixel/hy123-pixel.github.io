@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="从 Token、Transformer 到推理，理解大语言模型。">
+  <meta name="description" content="从 Tokenizer、注意力机制到训练三阶段与推理优化，建立对大语言模型的工程级认知。">
   <title>从 0 开始理解大语言模型 · hy123-pixel</title>
   <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
 </head>
@@ -11,31 +11,79 @@
   <header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header>
   <main class="el-main article-shell">
     <article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-ai-llm.svg" alt="从 0 开始理解大语言模型 封面"></div>
-      <div class="post-topline"><span class="el-tag el-tag--primary">大模型</span><time>2024-08-04 · 8 分钟</time></div>
+      <div class="post-topline"><span class="el-tag el-tag--primary">大模型</span><time>2026-08-05 · 13 分钟</time></div>
       <h1>从 0 开始理解大语言模型</h1>
-      <p class="article-lead">不讲玄学，从 Token、Transformer 到推理，一次建立对 LLM 的完整认知。</p><div class="article-visuals"><figure><img src="/assets/llm-1.svg" alt="大语言模型 核心概念示意图"><figcaption>大语言模型：核心概念与关键组成</figcaption></figure><figure><img src="/assets/llm-2.svg" alt="大语言模型 工作流程示意图"><figcaption>大语言模型：从输入到输出的工作流程</figcaption></figure><figure><img src="/assets/llm-3.svg" alt="大语言模型 实践检查示意图"><figcaption>大语言模型：实践检查与迭代清单</figcaption></figure></div>
-      <div class="article-meta"><span>基础概念</span><span>适合：AI 初学者 / 开发者</span></div>
+      <p class="article-lead">不讲玄学。从 Tokenizer 怎么切词、注意力为什么是 O(n²)、三阶段训练各自在学什么，到 KV Cache 与量化如何把推理变便宜——一次建立对 LLM 的工程级认知。</p><div class="article-visuals"><figure><img src="/assets/llm-1.svg" alt="大语言模型 核心概念示意图"><figcaption>模型的核心组成：Tokenizer → Transformer 层 → 输出头</figcaption></figure><figure><img src="/assets/llm-2.svg" alt="大语言模型 工作流程示意图"><figcaption>一次推理的链路：编码、注意力、采样</figcaption></figure><figure><img src="/assets/llm-3.svg" alt="大语言模型 实践检查示意图"><figcaption>工程检查清单：上下文设计 + 验证闭环</figcaption></figure></div>
+      <div class="article-meta"><span>难度：深入</span><span>适合：开发者 / 想真正搞懂模型的工程师</span></div>
       <hr>
-      <h2>01 · 模型到底在做什么</h2>
-      <p>大语言模型（LLM）最基本的工作，是根据已经看到的上下文，预测下一个 Token。Token 可以是一个字、一个词，也可以是词的一部分。模型不会先写好完整答案再交给你，而是一次预测一个 Token，逐步构造出句子。</p>
-      <p>这解释了两个常见现象：同一个问题多问几次，答案可能不同；当上下文里没有可靠证据时，模型也可能生成“听起来正确”的内容。它擅长捕捉语言模式，但并不天然具备事实核验能力。</p>
-      <div class="diagram-card"><span class="diagram-label">GENERATE</span><div class="token-line"><span>今天</span><b>→</b><span>的</span><b>→</b><span>天气</span><b>→</b><strong>很</strong><i>?</i></div><small>每一步都在计算下一个 Token 的概率分布</small></div>
-      <h2>02 · Transformer 为什么重要</h2>
-      <p>Transformer 的核心是注意力机制。处理当前 Token 时，模型会动态关注上下文中更相关的部分，因此能把“指代关系”“前后条件”和“远距离语义”连接起来。它还能并行处理训练数据，因此成为当今大模型的基础架构。</p>
-      <div class="callout"><strong>一个实用的类比：</strong>注意力机制像一支荧光笔。读到每个词时，模型会重新决定应该把重点标在哪些上下文上。</div>
-      <h2>03 · 训练、对齐与推理</h2>
-      <p>预训练让模型从海量文本中学习语言规律；指令微调让它更容易遵循人类要求；偏好对齐让回答更安全、更符合使用习惯。到了推理阶段，模型只根据输入上下文和采样策略生成结果。</p>
-      <p>所以“参数量更大”只是影响能力上限的一个因素；相比之下，上下文是否完整、任务是否定义清楚、是否提供了工具与验证步骤，往往更直接地决定实际的应用效果。</p>
-      <h2>04 · 开发者应该关注什么</h2>
-      <ol><li><strong>先定义任务：</strong>是生成、分类、抽取，还是需要事实核验？</li><li><strong>再选择上下文：</strong>把必要信息放进 Prompt，避免无关内容淹没重点。</li><li><strong>最后设计验证：</strong>结构化输出、规则校验、引用来源，都是应用的一部分。</li></ol>
-      <pre><code>输入：用户问题 + 可信上下文
-模型：理解任务并生成候选答案
-程序：校验格式、来源和权限
-输出：答案 / 不确定性 / 可追溯依据</code></pre>
-      <p class="article-end">理解原理不是为了背概念，而是为了知道问题应该在模型、数据还是工作流里解决。</p>
+      <h2>01 · Tokenizer：为什么 token 数≠字数</h2>
+      <p>文本进入模型的第一步是分词（tokenization）。模型并不认识“字”或“词”，它只认词典里的 token。主流算法是 <strong>BPE（Byte-Pair Encoding）</strong> 和 <strong>WordPiece</strong>：它们从字符或字节对出发，反复合并出现频率最高的相邻单元，最终得到一套兼顾常见词与罕见词的词表。于是“learning”可能被拆成“learn”“ing”两个 token，“_temperature”也可能被切得更碎。</p>
+      <p>这带来三个工程后果：第一，<strong>token 数≠字数</strong>，英文通常比中文更“费” token，同样的 prompt 英文计费可能更高；第二，<strong>生僻词、代码、非拉丁文字会被切成很多小 token</strong>，长上下文消耗更快；第三，跨模型迁移提示时要注意词表不同——A 模型的 100 token 在 B 模型可能不是 100。计算预算时务必以目标模型的 tokenizer 实测为准。</p>
+      <div class="callout"><strong>小贴士：</strong>OpenAI / Hugging Face 都提供 tokenizer 在线工具，把提示词贴进去就能看到真实 token 数与切分，比凭感觉估算靠谱得多。</div>
 
-</article>
+      <h2>02 · 注意力机制：强，但代价是 O(n²)</h2>
+      <p>Transformer 的核心是自注意力（self-attention）。处理第 i 个 token 时，模型计算它与序列中每个 token 的相关度（query 与 key 的点积），再按权重把所有人（value）加权求和。这一步让“指代关系”“远距离依赖”都能被捕捉——这是它碾压 RNN 的根本原因。但它有个绕不开的成本：每个 token 都要和前面所有 token 算一遍，<strong>计算与显存随序列长度 n 近似 O(n²) 增长</strong>。</p>
+      <p>这就是为什么长上下文既贵又慢：把窗口从 8k 拉到 128k，注意力开销不是 16 倍而是约 256 倍。业界用各种稀疏注意力、分块（chunked）与显存优化来缓解，但本质矛盾仍在。工程上的启示很直接：<strong>不要把无关内容塞满上下文</strong>，真正需要的上下文越短，延迟和成本越低。</p>
+      <div class="diagram-card"><span class="diagram-label">ATTENTION</span>
+        <div class="token-line">
+          <span>Q·Kᵀ</span><b>→</b><span>softmax</span><b>→</b><span>×V</span><b>→</b><span>加权表示</span>
+        </div>
+        <small>每个 token 都和全序列算相关度，所以复杂度约 O(n²)</small>
+      </div>
+
+      <h2>03 · 训练三阶段：各自在学什么</h2>
+      <p>今天能对话的模型，能力来自三个递进阶段。<strong>预训练（Pre-training）</strong>：在海量无标注文本上做“下一个 token 预测”，目标是让模型掌握语言规律、世界知识与推理基底。这一步最贵，决定能力上限。<strong>指令微调（SFT）</strong>：用“指令—回答”配对数据继续训练，让模型学会“按人类要求的格式与意图回应”，从“续写机器”变成“能听话的助手”。<strong>偏好对齐（RLHF / DPO）</strong>：用人类偏好数据教模型“哪种回答更合人意、更安全”。其中 DPO 把强化学习简化成直接对比损失，比传统 RLHF 的奖励模型+PPO 更稳定、更易训练。</p>
+      <p>理解这条链路后你会明白：<strong>“参数量更大”只是决定上限，而上下文是否完整、任务是否定义清楚、是否给了工具与验证，往往更直接地决定你手上的实际效果。</strong>很多“模型不行”的问题，其实出在 SFT 之后的使用环节。</p>
+      <table>
+        <thead><tr><th>阶段</th><th>在学什么</th><th>数据</th><th>谁最贵</th></tr></thead>
+        <tbody>
+          <tr><td>预训练</td><td>语言 + 世界知识</td><td>万亿级无标注文本</td><td>是（算力天花板）</td></tr>
+          <tr><td>指令微调 SFT</td><td>听懂指令、规范格式</td><td>指令-回答对</td><td>中等</td></tr>
+          <tr><td>偏好对齐 DPO</td><td>更合人意、更安全</td><td>偏好对比数据</td><td>较低</td></tr>
+        </tbody>
+      </table>
+
+      <h2>04 · 推理优化：把“贵”变成“可用”</h2>
+      <p>模型训好只是开始，部署时的成本与延迟才是落地门槛。几个关键手段：<strong>KV Cache</strong>——自回归生成时，前面 token 的 key/value 缓存复用，避免每生成一个新词就重算整个历史，这是长输出提速的核心；<strong>量化</strong>——把权重从 FP16 压到 INT8 甚至 4bit（如 GPTQ / AWQ），显存大幅下降、吞吐提升，代价是少量精度损失，4bit 下复杂推理可能略降质；<strong>投机解码（speculative decoding）</strong>——用小模型先草拟若干 token，大模型一次性并行校验，把自回归的串行瓶颈摊薄。</p>
+      <div class="callout callout--warn"><strong>踩坑提醒：</strong>4bit 量化对“写诗聊天”几乎无损，但对数学推导、长链代码等精细任务可能掉点。上线前务必用你的真实任务做 A/B，别只看 benchmark。</div>
+      <div class="diagram-card"><span class="diagram-label">INFERENCE</span>
+        <div class="token-line">
+          <span>权重 FP16</span><b>→</b><span>量化 INT8/4bit</span><b>·</b><span>KV Cache 复用</span><b>·</b><span>投机解码加速</span>
+        </div>
+        <small>三类优化分别压显存、省重算、破串行瓶颈</small>
+      </div>
+
+      <h2>05 · 能力边界与失效模式</h2>
+      <p>知道模型“不知道什么”比知道它会什么更重要。<strong>知识截止</strong>：训练数据有时间点，之后的事它只能靠检索补；<strong>推理 vs 记忆</strong>：模型擅长“在训练分布内组合”，但不等于真正理解——让它做长链算术或多步逻辑，容易在中段走偏；<strong>上下文污染</strong>：你塞进去的错误前提，它多半会顺着演下去。失效时不报错、不犹豫，反而更自信，这正是幻觉最危险的地方。</p>
+
+      <h2>06 · 开发者实战：上下文设计 + 验证闭环</h2>
+      <p>落到工程，做对三件事就能解决大部分问题：先<strong>定义任务类型</strong>（生成 / 分类 / 抽取 / 核验），再<strong>设计最小必要上下文</strong>（只放与任务相关的证据，用 system 固定指令、用 user 放动态内容），最后<strong>接一道程序侧验证</strong>（schema 校验、来源核对、关键数字复算）。把模型看作流水线的一环，而非黑盒终点。</p>
+      <pre><code># 一个最小可运行的验证闭环（Python）
+from pydantic import BaseModel, ValidationError
+
+class Answer(BaseModel):
+    problem: str
+    steps: list[str]
+    risk: str | None
+
+def call_llm(prompt: str) -> Answer | None:
+    raw = client.chat.completions.create(
+        model="gpt-5",
+        messages=[{"role": "system", "content": "只依据给定证据回答，缺失则说不知道"},
+                  {"role": "user", "content": prompt}],
+        response_format={"type": "json_schema", "schema": Answer.model_json_schema()}
+    )
+    try:
+        return Answer.model_validate_json(raw.choices[0].message.content)
+    except ValidationError as e:
+        print("输出不符合约束，需重试或兜底:", e)
+        return None</code></pre>
+      <p class="article-end">理解原理不是为了背概念，而是为了知道问题该在模型、数据还是工作流里解决：幻觉靠证据与校验，慢靠 KV Cache 与量化，贵靠精简上下文。原理清楚，取舍才有底气。</p>
+      <hr>
+      <h2>相关阅读</h2>
+      <p>顺着工程链路继续：<a href="/ai-start/">第一次使用 AI，先理解这 7 件事</a>（建立正确使用心智）、<a href="/ai-models/">主流 AI 模型怎么选</a>（把能力映射到底层模型）、<a href="/ai-prompt/">Prompt 工程</a>（把上下文与约束写清楚的具体写法）。</p>
+    </article>
   </main>
   <footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer>
-<script src="/scripts/metrics.js"></script></body>
+  <script src="/scripts/metrics.js"></script></body>
 </html>
