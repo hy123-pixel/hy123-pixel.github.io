@@ -1142,11 +1142,40 @@ a {
 }
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   height: 64px;
   border-bottom: 1px solid var(--el-border);
-  background: rgba(255, 255, 255, .94);
+  background: rgba(255, 255, 255, .85);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  backdrop-filter: saturate(180%) blur(10px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
+
+/* 面包屑：导航栏与正文之间的层级路径 */
+.breadcrumb {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 14px 24px 0;
+  font-size: 13px;
+  color: var(--el-muted, #909399);
+  line-height: 1.6;
+}
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.breadcrumb li { display: inline-flex; align-items: center; }
+.breadcrumb a { color: var(--el-muted, #909399); text-decoration: none; transition: color .15s; }
+.breadcrumb a:hover { color: var(--el-blue); }
+.breadcrumb .sep { margin: 0 2px; color: #c0c4cc; }
+.breadcrumb .current { color: var(--el-text, #303133); font-weight: 600; }
 
 .site-header-inner {
   box-sizing: border-box;
