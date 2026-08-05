@@ -1320,7 +1320,7 @@ a {
 .post-card { display: flex; flex-direction: column; min-height: 250px; padding: 0; overflow: hidden; transition: transform .2s, box-shadow .2s, border-color .2s; }
 .post-card:hover { border-color: #b3d8ff; box-shadow: 0 10px 26px rgba(64, 158, 255, .14); transform: translateY(-4px); }
 .post-card-featured { border-top: 3px solid var(--el-blue); }
-.post-card .card-body { display: flex; flex-direction: column; flex: 1; padding: 22px 22px 22px; }
+.post-card .card-body { display: flex; flex-direction: column; flex: 1; padding: 16px; }
 .post-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--el-muted); font-size: 12px; }
 .el-tag { display: inline-block; padding: 4px 9px; border: 1px solid #d9ecff; border-radius: 4px; background: #ecf5ff; color: var(--el-blue); font-size: 12px; line-height: 1.2; }
 .el-tag--primary { border-color: #b3d8ff; background: #ecf5ff; color: #337ecc; }
