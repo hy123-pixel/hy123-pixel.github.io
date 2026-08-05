@@ -1,14 +1,32 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-grid" id="softwareGrid" aria-label="推荐软件列表"></section><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+<style>
+  /* 软件卡片截图/图表区域 */
+  .software-shot-wrap {
+    margin: 12px -20px -16px;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    background: #f7f8fa;
+    line-height: 0;
+  }
+  .software-shot {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-top: 1px solid #ebeef5;
+  }
+</style>
+</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1></section><section class="software-grid" id="softwareGrid" aria-label="推荐软件列表"></section><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days">—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script>
   /* =========================================================
      软件数据：在此数组中添加 / 修改推荐软件即可，页面会自动渲染。
      字段说明：
-       name     软件名称（必填）
-       icon     图标：图片地址（以 http/https/ 或 / 开头，推荐用官网 favicon，最稳）；也支持 emoji（如 "🧩"）
-       color    图标底色（emoji 模式下使用，可选）
-       tag      分类标签（可选）
-       desc     软件介绍（必填）
-       site     官网地址（可选；留空则不显示「官网」按钮）
-       download 下载地址（可选；留空则不显示「下载」按钮）
+       name      软件名称（必填）
+       icon      图标：图片地址（以 http/https/ 或 / 开头）；也支持 emoji（如 "🧩"）
+       color     图标底色（emoji 模式下使用，可选）
+       tag       分类标签（可选）
+       desc      软件介绍（必填）
+       site      官网地址（可选；留空则不显示「官网」按钮）
+       download  下载地址（可选；留空则不显示「下载」按钮）
+       image     截图/图表地址（可选；以 http/https/ 或 / 开头，会在卡片底部渲染预览图）
      ========================================================= */
   const SOFTWARE = [
     {
@@ -37,18 +55,25 @@
       desc: "带 Schema 校验的 JSON 存储服务，几秒即可搭建一个轻量 JSON 端点。支持 JSON Schema 校验与锁定、子属性访问、CORS，适合原型开发时充当后端或数据 Mock；项目完全开源，也可自托管。",
       site: "https://www.npoint.io/",
       download: ""
+    },
+    {
+      name: "Unit.Link",
+      icon: "/assets/software/unitlink-icon.svg",
+      color: "#f0efff",
+      tag: "效率工具 · 链接聚合",
+      desc: "一站式链接聚合落地页服务——创建个人专属 URL（unit.link/你的名字），将网站、社交主页、电话、邮箱等所有链接汇聚到一个页面。支持分组整理、自定义设计风格、一键分享至社交网络。内置 vCard 数字名片功能，访客可一键将你的联系方式保存到通讯录。",
+      site: "https://unit.link/",
+      image: "/assets/software/unitlink-vcard.png"
+    },
+    {
+      name: "Wakdev",
+      icon: "/assets/software/wakdev-icon.svg",
+      color: "#f0efff",
+      tag: "NFC 工具 · 应用套件",
+      desc: "法国独立开发者团队 Wakdev 出品的 NFC 工具与应用全家桶。旗舰产品 NFC Tools 支持 Android / iOS / PC / Mac 全平台，可读写各类 NFC 标签、查看标签技术参数与内存信息。另有 NFC Tools Pro（高级版）、NFC Tasks（自动化任务）、NFC Tools KeyBoard Controller 等衍生产品，覆盖从手机到桌面全场景的 NFC 操作需求。",
+      site: "https://www.wakdev.com/en/",
+      image: "/assets/software/wakdev-nfctools.jpg"
     }
-    // 在上方逗号后继续添加更多软件，例如：
-    // ,
-    // {
-    //   name: "示例软件",
-    //   icon: "https://example.com/icon.png",
-    //   color: "#67c23a",
-    //   tag: "效率",
-    //   desc: "在这里写一句话介绍。",
-    //   site: "https://example.com",
-    //   download: "https://example.com/download"
-    // }
   ];
 
   const esc = s => String(s == null ? "" : s)
@@ -68,6 +93,7 @@
     const actions = [];
     if (s.site) actions.push('<a class="el-button el-button--primary" href="' + esc(s.site) + '" target="_blank" rel="noopener">官网</a>');
     if (s.download) actions.push('<a class="el-button" href="' + esc(s.download) + '" target="_blank" rel="noopener">下载</a>');
+    var shot = s.image ? '<div class="software-shot-wrap"><img class="software-shot" src="' + esc(s.image) + '" alt="' + esc(s.name) + ' 截图" loading="lazy"></div>' : '';
     return '<article class="el-card software-card">'
       + '<div class="software-top">' + iconHtml(s)
       + '<div class="software-head"><h3>' + esc(s.name) + '</h3>'
@@ -75,6 +101,7 @@
       + '</div></div>'
       + '<p class="software-desc">' + esc(s.desc) + '</p>'
       + (actions.length ? '<div class="software-actions">' + actions.join("") + '</div>' : "")
+      + shot
       + '</article>';
   }
 
@@ -89,6 +116,13 @@
       fb.style.fontWeight = "700";
       fb.style.color = img.dataset.fbcolor || "#6d7cf4";
       img.replaceWith(fb);
+    });
+  });
+
+  // 截图加载失败时隐藏整个截图容器，避免出现裂图占位
+  document.querySelectorAll("#softwareGrid .software-shot").forEach(function (img) {
+    img.addEventListener("error", function () {
+      this.closest(".software-shot-wrap").style.display = "none";
     });
   });
 </script><script src="/scripts/metrics.js"></script></body></html>
