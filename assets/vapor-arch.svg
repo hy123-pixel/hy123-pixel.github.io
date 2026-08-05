@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 280" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">
+  <rect width="380" height="280" fill="#fcfcfe"/>
+  <text x="190" y="26" text-anchor="middle" font-size="15" font-weight="700" fill="#3a3a4c">Vapor 整体架构</text>
+  <!-- client -->
+  <rect x="20" y="60" width="92" height="46" rx="8" fill="#0ea5e9"/>
+  <text x="66" y="88" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">浏览器 / 客户端</text>
+  <!-- arrow -->
+  <path d="M116 83 H152" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <!-- swifnio -->
+  <rect x="160" y="60" width="104" height="46" rx="8" fill="#14b8a6"/>
+  <text x="212" y="80" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">SwiftNIO</text>
+  <text x="212" y="96" text-anchor="middle" font-size="10" fill="#eafff8">非阻塞事件循环</text>
+  <!-- arrow -->
+  <path d="M272 83 H300" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <!-- router -->
+  <rect x="308" y="60" width="56" height="46" rx="8" fill="#6366f1"/>
+  <text x="336" y="88" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">Router</text>
+  <!-- down arrow to controller -->
+  <path d="M336 112 V132" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="262" y="138" width="148" height="40" rx="8" fill="#818cf8"/>
+  <text x="336" y="163" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">Controller（业务逻辑）</text>
+  <!-- controller to fluent -->
+  <path d="M336 178 V196" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="262" y="202" width="148" height="40" rx="8" fill="#22c55e"/>
+  <text x="336" y="227" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">Fluent ORM</text>
+  <!-- fluent to db -->
+  <path d="M336 242 V254" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="276" y="256" width="120" height="16" rx="6" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="336" y="268" text-anchor="middle" font-size="10" fill="#16a34a">SQLite / MySQL / PostgreSQL</text>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+</svg>
