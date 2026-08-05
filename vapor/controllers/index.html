@@ -1,0 +1,28 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用控制器把零散的 Vapor 路由组织成模块，理解 MVC 分层与 RouteGroup 统一前缀。"><title>控制器与 MVC 架构 · Vapor 系列 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-controllers.svg" alt="控制器与 MVC 架构 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 教程</span><time>2026-08-05 · 约 8 分钟</time></div><h1>控制器与 MVC 架构</h1><p class="article-lead">路由只有两三条时，全写进 routes.swift 还凑合；等到几十条，就成了灾难。Vapor 用「控制器」把相关路由收拢成模块，背后的思想就是经典的 MVC。</p><h2>一、为什么需要控制器</h2><p>Web 开发里有个流行套路叫 <strong>MVC</strong>：</p><ul><li><strong>Model（模型）</strong>：数据库里的数据结构，比如「缩略语」。</li><li><strong>View（视图）</strong>：展示给用户的页面（HTML）。</li><li><strong>Controller（控制器）</strong>：决定「数据怎么被取出来、怎么呈现」的那层逻辑。</li></ul><p>把路由按主题塞进各自的控制器，<code>routes.swift</code> 就只剩「挂载」这件事，清爽得多。</p><h2>二、控制器长什么样</h2><p>一个控制器就是一个遵循 <code>RouteCollection</code> 的结构体，在 <code>boot()</code> 里注册自己的路由：</p><pre><code>import Vapor
+import Fluent
+
+struct AcronymsController: RouteCollection {
+    func boot(routes: RoutesBuilder) throws {
+        routes.post("api", "acronyms", use: createHandler)
+    }
+
+    func createHandler(_ req: Request) throws -> EventLoopFuture&lt;Acronym&gt; {
+        let data = try req.content.decode(CreateAcronymData.self)
+        let acronym = Acronym(short: data.short, long: data.long)
+        return acronym.save(on: req.db).map { acronym }
+    }
+}</code></pre><div class="callout"><strong>版本提示：</strong>上面是 Vapor 4 写法（用 <code>RoutesBuilder</code> 和 <code>req.db</code>）。Vapor 3 里对应的是 <code>func boot(router: Router)</code> 以及 <code>req</code> 上的 <code>.save(on: req)</code> 返回 <code>Future</code>。思路一致，只是 API 名字不同。</div><h2>三、把控制器挂上去</h2><p><code>routes.swift</code> 退居「接线员」角色，只负责创建并注册控制器：</p><pre><code>import Vapor
+
+func routes(_ app: Application) throws {
+    let acronymsController = AcronymsController()
+    try app.register(collection: acronymsController)
+
+    let websiteController = WebsiteController()
+    try app.register(collection: websiteController)
+}</code></pre><p>这样「接口类路由」和「网页类路由」各归各家，文件不再是一坨。</p><h2>四、RouteGroup：给路由加统一前缀</h2><p>当控制器里多条路由都挂在 <code>api/acronyms</code> 下，每条都写完整路径就太啰嗦。用 <strong>RouteGroup</strong> 提一次前缀：</p><pre><code>func boot(routes: RoutesBuilder) throws {
+    let group = routes.grouped("api", "acronyms")
+    group.post(use: createHandler)
+    group.get(use: getAllHandler)
+    group.get(":acronymID", use: getHandler)
+    group.delete(":acronymID", use: deleteHandler)
+}</code></pre><p>四条路由自动带上 <code>/api/acronyms</code> 前缀，少写很多重复字符串，也少了拼错路径的机会。</p><h2>五、控制器里能做什么</h2><p>控制器是真正的「业务中枢」：</p><ul><li>调 Fluent 读写数据库（下一篇细讲）；</li><li>调 Leaf 渲染网页（做网站时）；</li><li>调用中间件做鉴权、日志等横切逻辑。</li></ul><p>把路由逻辑从 <code>routes.swift</code> 搬到控制器，是你项目从「玩具」走向「能维护」的关键一步。</p><hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/">Vapor 从 0 开始：系列总览</a></li><li><a href="/vapor/setup/">环境搭建与第一个项目</a></li><li><a href="/vapor/routing/">路由与请求处理</a></li><li><a href="/vapor/leaf/">用 Leaf 渲染动态网页</a></li><li><a href="/vapor/fluent/">Fluent 数据库与 RESTful CRUD</a></li><li><a href="/vapor/auth/">用户认证：密码哈希与 Token</a></li><li><a href="/vapor/deploy/">部署到自己的云服务器</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

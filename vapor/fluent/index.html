@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 的 Fluent ORM 配置数据库、定义模型与迁移，实现 RESTful CRUD，并掌握查询与模型关系。"><title>Fluent 数据库与 RESTful CRUD · Vapor 系列 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-fluent.svg" alt="Fluent 数据库与 RESTful CRUD 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 教程</span><time>2026-08-05 · 约 12 分钟</time></div><h1>Fluent 数据库与 RESTful CRUD</h1><p class="article-lead">后端没有数据库，就像收银台没有账本。Fluent 是 Vapor 自带的 ORM（对象关系映射），让你用 Swift 结构体操作数据库，不用手写 SQL。这篇带你配库、建表、跑通增删改查。</p><h2>一、选哪个数据库</h2><p>Vapor 原生支持三种关系型驱动：</p><div class="table-wrap"><table class="model-table"><thead><tr><th>数据库</th><th>特点</th><th>适合场景</th></tr></thead><tbody><tr><td><strong>SQLite</strong></td><td>基于单个文件，零配置</td><td>原型、本地测试（写入频率低）</td></tr><tr><td><strong>MySQL</strong></td><td>LAMP 常用，云厂商普遍支持</td><td>中小型 Web 应用</td></tr><tr><td><strong>PostgreSQL</strong></td><td>企业级、扩展性强、标准化好</td><td>生产环境、复杂查询</td></tr></tbody></table></div><div class="callout"><strong>建议：</strong>开发阶段先用 SQLite——数据直接落在本地文件，省去装库的麻烦。等要上生产，再换成 MySQL 或 PostgreSQL（配合 Docker 一条命令起一个容器）。Vapor 切换驱动基本只改 <code>configure.swift</code>，业务代码不动。</div><h2>二、用 SQLite 快速起步</h2><p>在 <code>configure.swift</code> 里注册 Fluent 与 SQLite：</p><pre><code>import Fluent
+import FluentSQLiteDriver
+
+app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
+
+app.migrations.add(CreateAcronym())</code></pre><p>如果是 Vapor 3，写法略不同（用 <code>FluentSQLiteProvider</code> + <code>DatabasesConfig</code> + <code>MigrationConfig</code>），但目的相同：告诉框架「用哪个库、要执行哪些迁移」。</p><h2>三、定义模型与迁移</h2><p>模型就是一张表的 Swift 映射，遵循 <code>Model</code> 协议：</p><pre><code>import Fluent
+
+final class Acronym: Model {
+    static let schema = "acronyms"
+
+    @ID(key: .id)
+    var id: UUID?
+
+    @Field(key: "short")
+    var short: String
+
+    @Field(key: "long")
+    var long: String
+
+    init() {}
+    init(id: UUID? = nil, short: String, long: String) {
+        self.id = id
+        self.short = short
+        self.long = long
+    }
+}</code></pre><p>「迁移（Migration）」相当于建表语句，Fluent 用它来创建/升级表结构：</p><pre><code>struct CreateAcronym: Migration {
+    func prepare(on database: Database) -> EventLoopFuture&lt;Void&gt; {
+        database.schema("acronyms")
+            .id()
+            .field("short", .string, .required)
+            .field("long", .string, .required)
+            .create()
+    }
+    func revert(on database: Database) -> EventLoopFuture&lt;Void&gt; {
+        database.schema("acronyms").delete()
+    }
+}</code></pre><h2>四、RESTful CRUD 路由</h2><p>RESTful 的核心思想：用一个 URL 对应一个资源，用不同 HTTP 方法表达增删改查。以 <code>/api/acronyms</code> 为例：</p><div class="table-wrap"><table class="model-table"><thead><tr><th>操作</th><th>方法 + URL</th><th>含义</th></tr></thead><tbody><tr><td>新增 Create</td><td><code>POST /api/acronyms</code></td><td>创建一个新的缩略语</td></tr><tr><td>列表 Retrieve</td><td><code>GET /api/acronyms</code></td><td>获取所有缩略语</td></tr><tr><td>详情 Retrieve</td><td><code>GET /api/acronyms/&lt;ID&gt;</code></td><td>获取指定 ID 的缩略语</td></tr><tr><td>更新 Update</td><td><code>PUT /api/acronyms/&lt;ID&gt;</code></td><td>更新指定 ID</td></tr><tr><td>删除 Delete</td><td><code>DELETE /api/acronyms/&lt;ID&gt;</code></td><td>删除指定 ID</td></tr></tbody></table></div><p><strong>新增</strong>——解码请求体后保存：</p><pre><code>group.post(use: createHandler)
+func createHandler(_ req: Request) throws -> EventLoopFuture&lt;Acronym&gt; {
+    let data = try req.content.decode(CreateAcronymData.self)
+    let acronym = Acronym(short: data.short, long: data.long)
+    return acronym.save(on: req.db).map { acronym }
+}</code></pre><p><strong>查询全部 / 单个</strong>：</p><pre><code>func getAllHandler(_ req: Request) throws -> EventLoopFuture&lt;[Acronym]&gt; {
+    Acronym.query(on: req.db).all()
+}
+func getHandler(_ req: Request) throws -> EventLoopFuture&lt;Acronym&gt; {
+    Acronym.find(req.parameters.get("acronymID"), on: req.db)
+        .unwrap(or: Abort(.notFound))
+}</code></pre><h2>五、Fluent 查询操作</h2><p>除了「全查」和「按 ID 查」，Fluent 还支持过滤、排序、分页：</p><pre><code>// 过滤
+Acronym.query(on: req.db).filter(\.$short == "OMG").all()
+
+// 排序
+Acronym.query(on: req.db).sort(\.$short, .ascending).all()
+
+// 限制数量
+Acronym.query(on: req.db).range(...4).all()</code></pre><p><code>\.$short</code> 是 Swift 的 key-path 写法，编译器帮你检查字段名，拼错就会报红，比手写字符串安全得多。</p><h2>六、模型关系：父子与兄弟</h2><p>真实业务里数据互相有关联。Fluent 用属性包装器表达：</p><ul><li><strong>父子（Parent–Child）</strong>：一个用户拥有多条缩略语 → 缩略语上加 <code>@Parent(key: "user_id")</code>。</li><li><strong>兄弟 / 多对多（Sibling）</strong>：一个缩略语可贴多个分类，一个分类也可被多个缩略语使用 → 用 <code>@Siblings</code> 中间表。</li></ul><p>定义好关系后，Fluent 能直接 <code>acronym.$user.get(on: req.db)</code> 把关联对象一并取出来，不用你自己 join。</p><hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/">Vapor 从 0 开始：系列总览</a></li><li><a href="/vapor/setup/">环境搭建与第一个项目</a></li><li><a href="/vapor/routing/">路由与请求处理</a></li><li><a href="/vapor/controllers/">控制器与 MVC 架构</a></li><li><a href="/vapor/leaf/">用 Leaf 渲染动态网页</a></li><li><a href="/vapor/auth/">用户认证：密码哈希与 Token</a></li><li><a href="/vapor/deploy/">部署到自己的云服务器</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

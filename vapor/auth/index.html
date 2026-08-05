@@ -1,0 +1,35 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Vapor 中实现用户认证：区分认证与授权、用 BCrypt 哈希密码、唯一约束，以及 Basic Auth 与 Token 两种认证思路。"><title>用户认证：密码哈希与 Token · Vapor 系列 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-auth.svg" alt="用户认证：密码哈希与 Token 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 教程</span><time>2026-08-05 · 约 10 分钟</time></div><h1>用户认证：密码哈希与 Token</h1><p class="article-lead">一旦你的应用有了「用户」，就得回答两个问题：你是谁？你能做什么？前者叫认证（Authentication），后者叫授权（Authorization）。这篇先搞定最要命的「密码怎么存才安全」。</p><h2>一、认证 ≠ 授权</h2><ul><li><strong>认证（Authentication）</strong>：验明「你是谁」——通常是用户名 + 密码。</li><li><strong>授权（Authorization）</strong>：确认「你能干什么」——比如管理员能删帖、普通用户只能看。</li></ul><p>先把认证做对，授权才有意义。而认证的第一铁律是：<strong>密码绝不能以明文存进数据库</strong>。</p><h2>二、永远不要明文存密码</h2><p>如果数据库泄露，明文密码就直接曝光了。正确做法是<strong>哈希</strong>：用 BCrypt 这类算法把密码变成一串不可逆的密文，而且它会自动「加盐」（每人的盐不同，相同密码也会得到不同哈希）。</p><p>Vapor 自带 <code> Crypto</code> 模块，一行就搞定：</p><pre><code>import Crypto
+
+func createHandler(_ req: Request) throws -> EventLoopFuture&lt;User&gt; {
+    let data = try req.content.decode(CreateUserData.self)
+    let user = User(
+        username: data.username,
+        password: try Bcrypt.hash(data.password)
+    )
+    return user.save(on: req.db).map { user }
+}</code></pre><p>登录时，用 <code>Bcrypt.verify(明文, against: 哈希)</code> 比对，而不是把哈希「反解」出来——它本来就解不开。</p><h2>三、User 模型与唯一约束</h2><p>登录要靠「用户名 + 密码」唯一定位用户，所以用户名不能重复。在迁移里加唯一约束：</p><pre><code>struct CreateUser: Migration {
+    func prepare(on database: Database) -> EventLoopFuture&lt;Void&gt; {
+        database.schema("users")
+            .id()
+            .field("username", .string, .required)
+            .field("password", .string, .required)
+            .unique(on: "username")
+            .create()
+    }
+    func revert(on database: Database) -> EventLoopFuture&lt;Void&gt; {
+        database.schema("users").delete()
+    }
+}</code></pre><div class="callout"><strong>改了表结构要重置：</strong>新增字段或约束后，需要重置一次数据库（或写新的迁移）让变动生效。在 Xcode 的 Scheme 运行参数里加上相应 flag 即可，否则会一直报「字段不存在」。</div><h2>四、基本认证（Basic Auth）</h2><p>最朴素的方案：客户端把 <code>用户名:密码</code> 用 Base64 塞进请求头 <code>Authorization</code>，服务端解出后查库、验密。</p><pre><code>Authorization: Basic base64(用户名:密码)</code></pre><p>思路简单，但每次请求都带明文密码（即便 Base64 不是加密），通常只适合内部工具或配合 HTTPS。Vapor 提供了 <code>BasicAuthorization</code> 中间件帮你解析这个头。</p><h2>五、Token 认证（更常见）</h2><p>现代 API 更爱 Token：用户登录一次，服务端验证密码正确后发一个令牌（token），之后每次请求带上这个 token 即可，不用反复传密码。</p><pre><code>// 登录：验密通过后签发 token
+func loginHandler(_ req: Request) throws -> EventLoopFuture&lt;Token&gt; {
+    let data = try req.content.decode(LoginData.self)
+    return User.query(on: req.db)
+        .filter(\.$username == data.username)
+        .first()
+        .flatMap { user in
+            guard let user = user,
+                  try Bcrypt.verify(data.password, against: user.password)
+            else { throw Abort(.unauthorized) }
+            let token = Token(value: [UInt8].random(count: 16).base64, userID: user.id!)
+            return token.save(on: req.db).map { token }
+        }
+}</code></pre><p>后续请求在 <code>Authorization: Bearer &lt;token&gt;</code> 里带上令牌，服务端用 Token 中间件校验有效性。这样密码只在登录那一瞬间出现，日常调用更安全。</p><hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/">Vapor 从 0 开始：系列总览</a></li><li><a href="/vapor/setup/">环境搭建与第一个项目</a></li><li><a href="/vapor/routing/">路由与请求处理</a></li><li><a href="/vapor/controllers/">控制器与 MVC 架构</a></li><li><a href="/vapor/leaf/">用 Leaf 渲染动态网页</a></li><li><a href="/vapor/fluent/">Fluent 数据库与 RESTful CRUD</a></li><li><a href="/vapor/deploy/">部署到自己的云服务器</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
