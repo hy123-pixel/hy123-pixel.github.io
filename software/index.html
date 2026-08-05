@@ -3,7 +3,7 @@
      软件数据：在此数组中添加 / 修改推荐软件即可，页面会自动渲染。
      字段说明：
        name     软件名称（必填）
-       icon     图标：emoji（如 "🧩"）或图片地址（以 http/https/ 或 / 开头）
+       icon     图标：图片地址（以 http/https/ 或 / 开头，推荐用官网 favicon，最稳）；也支持 emoji（如 "🧩"）
        color    图标底色（emoji 模式下使用，可选）
        tag      分类标签（可选）
        desc     软件介绍（必填）
@@ -13,18 +13,18 @@
   const SOFTWARE = [
     {
       name: "TMOG",
-      icon: "🧩",
+      icon: "https://tmog.org/assets/brand/favicon.png",
       color: "#6d7cf4",
-      tag: "AI 工具",
-      desc: "TMOG 是一个 AI 工具集合站点（当前处于 Beta 阶段），汇集了多种实用能力与在线体验。点击官网可访问其最新功能与更新。",
+      tag: "系统工具 · 任务管理器",
+      desc: "TMOG 是 macOS 与 Windows 上的原生任务管理器，把系统监视器的清晰与任务管理器的深度结合到了一起。提供 CPU、内存、存储、网络、能耗、温度等实时仪表，支持进程树、服务控制与 Mac 系统报告浏览。macOS 公测版已开放下载（通用版，Apple 签名并公证）。",
       site: "https://tmog.org/#beta",
-      download: ""
+      download: "https://tmog.org/downloads/TMOG-Task-Manager-macOS-universal.dmg"
     }
     // 在上方逗号后继续添加更多软件，例如：
     // ,
     // {
     //   name: "示例软件",
-    //   icon: "🚀",
+    //   icon: "https://example.com/icon.png",
     //   color: "#67c23a",
     //   tag: "效率",
     //   desc: "在这里写一句话介绍。",
@@ -39,8 +39,9 @@
 
   function iconHtml(s) {
     if (!s.icon) return "";
+    const fb = esc((s.name || "?").charAt(0));
     if (/^(https?:|\/)/.test(s.icon)) {
-      return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + '"><img src="' + esc(s.icon) + '" alt="' + esc(s.name) + ' 图标"></span>';
+      return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + '"><img src="' + esc(s.icon) + '" alt="' + esc(s.name) + ' 图标" data-fb="' + fb + '" data-fbcolor="' + esc(s.text || "#6d7cf4") + '"></span>';
     }
     return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#6d7cf4") + '">' + esc(s.icon) + '</span>';
   }
@@ -60,4 +61,16 @@
   }
 
   document.getElementById("softwareGrid").innerHTML = SOFTWARE.map(cardHtml).join("");
+
+  // 图标加载失败（如源站禁止外链）时，回退为软件名首字母，避免出现裂图
+  document.querySelectorAll("#softwareGrid .software-icon img").forEach(function (img) {
+    img.addEventListener("error", function () {
+      var fb = document.createElement("span");
+      fb.textContent = img.dataset.fb || "?";
+      fb.style.fontSize = "22px";
+      fb.style.fontWeight = "700";
+      fb.style.color = img.dataset.fbcolor || "#6d7cf4";
+      img.replaceWith(fb);
+    });
+  });
 </script><script src="/scripts/metrics.js"></script></body></html>
