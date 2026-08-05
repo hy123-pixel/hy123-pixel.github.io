@@ -1585,6 +1585,23 @@ a {
   .article-card h1 { font-size: 32px; }
   .article-card p, .article-card li { font-size: 15px; }
   .article-meta { flex-wrap: wrap; gap: 5px 14px; }
+
+/* 相关阅读：明确下划线，便于一眼辨认超链接 */
+.post-detail .post-content .related-readings a,
+.post-content .related-readings a,
+.related-readings a {
+  color: var(--el-blue, #4c6ef5);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.related-readings a:hover {
+  color: #0050b3;
+  text-decoration-thickness: 2px;
+}
+.related-readings {
+  margin-top: 28px;
+}
   .token-line { gap: 6px; font-size: 14px; }
   .agent-flow { flex-wrap: wrap; justify-content: center; }
   .tools-hero { padding: 26px 22px; }
