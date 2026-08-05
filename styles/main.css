@@ -1299,7 +1299,7 @@ a {
 .orbit-core { position: absolute; top: 78px; left: 78px; display: grid; width: 64px; height: 64px; place-items: center; border-radius: 18px; background: var(--el-blue); color: white; font-size: 26px; box-shadow: 0 14px 30px rgba(64, 158, 255, .36); }
 
 .section-heading { display: flex; align-items: end; justify-content: space-between; margin: 50px 0 18px; }
-.section-heading h2, .quick-panel h2 { margin: 0; color: var(--el-text); font-size: 25px; letter-spacing: -.035em; }
+.section-heading h1, .section-heading h2, .quick-panel h2 { margin: 0; color: var(--el-text); font-size: 25px; letter-spacing: -.035em; }
 .post-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
 .archive-toolbar { display: flex; align-items: center; gap: 12px; }
 .view-toggle { display: inline-flex; border: 1px solid #dcdfe6; border-radius: 7px; overflow: hidden; background: #fff; }
