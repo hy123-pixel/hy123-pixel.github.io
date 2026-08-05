@@ -1,0 +1,46 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Fluent 在 Vapor 3 中实现搜索、条件过滤、取第一条和排序等查询操作，附完整 Vapor 3 路由代码。"><title>Fluent 查询 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-fluent-query.svg" alt="Fluent 查询 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>Fluent 查询</h1><p class="article-lead">除了简单的 all() / first()，Fluent 还能做条件过滤、或查询、取首条和排序。本文给出 Vapor 3 写法下的常用查询代码示例。</p>
+
+<p>请求示例：<code>http://localhost:8080/api/acronyms/search?term={searchItem}</code></p>
+
+<h2>Search：单字段过滤</h2>
+<pre><code>router.get("api", "acronyms", "search") { (req) -&gt; Future&lt;[Acronym]&gt; in
+    guard let searchItem = req.query[String.self, at: "term"] else {
+        throw Abort(.badRequest)
+    }
+    return Acronym.query(on: req)
+    .filter(\.short == searchItem)
+    .all()
+}</code></pre>
+
+<h2>Search：多字段或查询</h2>
+<pre><code>router.get("api", "acronyms", "search") { (req) -&gt; Future&lt;[Acronym]&gt; in
+    guard let searchItem = req.query[String.self, at: "term"] else {
+        throw Abort(.badRequest)
+    }
+    return Acronym.query(on: req).group(.or) { (or) in
+        or.filter(\.short == searchItem)
+        or.filter(\.long == searchItem)
+    }
+    .all()
+}</code></pre>
+
+<h2>First</h2>
+<pre><code>router.get("api","acronyms","first") { (req) -&gt; Future&lt;Acronym&gt; in
+    return Acronym.query(on: req).first().map(to: Acronym.self) { (acronym)  in
+        guard let acronym = acronym else {
+            throw Abort(.notFound)
+        }
+        return acronym
+    }
+}</code></pre>
+<p>或者更简单一点就是：</p>
+<pre><code>func firstHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt; {
+    return Acronym.query(on: req).first().unwrap(or: Abort(.notFound))
+}</code></pre>
+
+<h2>Sort</h2>
+<pre><code>router.get("api","acronyms","sorted") { (req) -&gt; Future&lt;[Acronym]&gt; in
+    return Acronym.query(on: req).sort(\.short, .ascending).all()
+}</code></pre>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

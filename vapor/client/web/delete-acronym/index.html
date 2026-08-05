@@ -1,0 +1,30 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 实现删除缩略语：受浏览器限制用 POST 触发删除，提交后重定向回首页。"><title>删除缩略语页面 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-delete-acronym.svg" alt="删除缩略语页面 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>删除缩略语页面</h1><p class="article-lead">本章用最简单的方式实现「删除缩略语」：受浏览器表单限制，用 POST 请求触发删除并跳回首页。</p>
+
+<h2>为什么也用 POST</h2>
+<p>由于浏览器的关系，表单只能发送 <code>POST</code>、<code>GET</code> 请求，而不能直接发送 <code>DELETE</code> 请求（虽然用 JS 可以做到，但本章不展开）。所以我们用一个 <code>POST</code> 路由来实现删除功能。</p>
+
+<h2>控制器中的删除路由</h2>
+<p>在 <code>WebsiteController.swift</code> 注册一条 <code>POST</code> 路由，路径为 <code>acronyms/:id/delete</code>。</p>
+<pre><code>router.post("acronyms", Acronym.parameter, "delete", use: deleteAcronymHandler)</code></pre>
+<p>处理方法里，先通过 <code>req.parameters.next(Acronym.self)</code> 取出目标对象，调用 <code>.delete(on: req)</code> 删除，再用 <code>transform(to:)</code> 把结果转换成「重定向到首页」的响应。</p>
+<pre><code>func deleteAcronymHandler(_ req: Request) throws -> Future&lt;Response&gt; {
+    return try req.parameters.next(Acronym.self).delete(on: req)
+    .transform(to: req.redirect(to: "/"))
+}</code></pre>
+<div class="callout">原理：<code>delete(on:)</code> 返回一个 <code>Future&lt;Void&gt;</code>，<code>transform(to:)</code> 忽略掉这个空结果，直接返回我们准备好的重定向响应，因此删除完成后用户会被带回到首页。</div>
+
+<h2>详情页加上删除按钮</h2>
+<p>在 <code>acronym.leaf</code> 中，把编辑链接和删除按钮放进同一个表单（<code>action</code> 指向删除路由）。点击 <code>Delete</code> 即提交 POST 触发删除。</p>
+<pre><code>#set("content"){
+    &lt;h1&gt;#(acronym.short)&lt;/h1&gt;
+    &lt;h2&gt;#(acronym.long)&lt;/h2&gt;
+    &lt;p&gt;Created by &lt;a href="/users/#(user.id)/"&gt;#(user.name)&lt;/a&gt;&lt;/p&gt;
+    &lt;form method="post" action="/acronyms/#(acronym.id)/delete"&gt;
+        &lt;a class="btn btn-primary" href="/acronyms/#(acronym.id)/edit" role="button"&gt;Edit&lt;/a&gt;&nbsp;
+        &lt;input class="btn btn-danger" type="submit" value="Delete" /&gt;
+    &lt;/form&gt;
+}
+
+#embed("base")</code></pre>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

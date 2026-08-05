@@ -1,0 +1,53 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="给 Vapor 3 的创建接口加上 HTTP Basic 认证，只有带上正确用户名与密码的请求才能通过。"><title>Basic 认证 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-basic-authentication.svg" alt="Basic 认证 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>Basic 认证</h1><p class="article-lead">本文给创建缩略语的接口加上 HTTP Basic 认证，只有带上正确“用户名 + 密码”的请求才能通过。</p>
+<h2>什么是 Basic 认证</h2>
+<p>HTTP Basic 认证把认证信息放在请求的 <code>Authorization</code> 头里。生成规则是：把“用户名:密码”拼起来后做 base64 编码，得到 token。例如用户名为 <code>user</code>、密码为 <code>password</code> 时：</p>
+<pre><code>base64(user:password) = dXNlcjpwYXNzd29yZAo=</code></pre>
+<p>那么认证头就是：</p>
+<pre><code>Authorization: Basic dXNlcjpwYXNzd29yZAo=</code></pre>
+<p>Vapor 提供了专门的 <code>Authentication</code> 包来处理包括 Basic 在内的各种认证，先把它加为依赖。</p>
+<h2>添加 Authentication 依赖</h2>
+<p>在 <code>Package.swift</code> 中加入 <code>vapor/auth</code> 包，并让 <code>App</code> 目标依赖 <code>Authentication</code>：</p>
+<pre><code>.package(url: "https://github.com/vapor/auth.git", from: "2.0.1"),
+...
+.target(name: "App", dependencies: ["FluentPostgreSQL", "Authentication", "Vapor", "Leaf"]),</code></pre>
+<p>改完依赖后重新生成 Xcode 工程：</p>
+<pre><code>vapor xcode -y</code></pre>
+<h2>让 User 支持 Basic 认证</h2>
+<p>给 <code>User</code> 遵循 <code>BasicAuthenticatable</code>，告诉框架用户名和密码分别对应模型里的哪个属性：</p>
+<pre><code>import Authentication
+...
+
+extension User: BasicAuthenticatable {
+    static var usernameKey: WritableKeyPath&lt;User, String&gt; = \.username
+    static var passwordKey: WritableKeyPath&lt;User, String&gt; = \.password
+}</code></pre>
+<h2>用中间件保护路由</h2>
+<p>中间件（Middleware）可以拦截请求和返回。这里的基本认证中间件会拦截请求，用 Basic 方式校验发起请求的用户是否合法；guard 中间件则保证只有通过认证的用户请求才能继续往下走。在 <code>AcronymsController</code> 里把创建缩略语的路由用这两个中间件包起来：</p>
+<pre><code>import Authentication
+...
+struct AcronymsController: RouteCollection {
+    func boot(router: Router) throws {
+        let routeGroup = router.grouped("api", "acronyms")
+
+        let basicAuthenticationMiddleware = User.basicAuthMiddleware(using: BCryptDigest())
+        let guardAuthMiddleware = User.guardAuthMiddleware()
+        let protectd = routeGroup.grouped(basicAuthenticationMiddleware, guardAuthMiddleware)
+        protectd.post(Acronym.self, use: createHandler)
+        // routeGroup.post(Acronym.self, use: createHandler)
+        ...
+    }
+    ...
+}</code></pre>
+<div class="callout">注意把受保护的路由挂到 <code>protectd</code> 上，而不是原来的 <code>routeGroup</code>。注释掉的那行是改造前的写法，留着方便对比。</div>
+<h2>注册 AuthenticationProvider</h2>
+<p>上面的中间件要真正生效，还得在应用配置里注册认证服务提供者：</p>
+<pre><code>import Authentication
+...
+public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
+    /// Register providers first
+    try services.register(FluentPostgreSQLProvider())
+    try services.register(AuthenticationProvider())
+    ...
+}</code></pre>
+<p>运行工程并用 Rested 工具测试：如果不带认证头，认证失败、无法创建缩略语；带上正确的用户名密码后，认证通过、创建成功。</p>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

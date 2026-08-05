@@ -1,0 +1,112 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Leaf 的模板嵌套复用页面骨架，并引入 Bootstrap 让 Vapor 3 的 Web 页面快速变美观、移动端友好。"><title>美化页面 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-beautiful-page.svg" alt="美化页面 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 8 分钟</time></div><h1>美化页面</h1><p class="article-lead">内容有了，页面还丑？本文用 Leaf 的模板嵌套复用骨架，再引入 Bootstrap，让 Vapor 3 的网站快速变美观、且移动端友好。</p>
+<h2>一、模板嵌套</h2>
+<p>Leaf 模板可以相互嵌套，达到 HTML 代码复用的目的。首先把 <code>index.leaf</code> 中可复用的部分抽出来，放到 <code>base.leaf</code> 里供其它页面复用。</p>
+<p>基础模板 <code>base.leaf</code>：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="en"&gt;
+    &lt;head&gt;
+        &lt;meta charset="utf-8" /&gt;
+        &lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        #get(content)
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>页面模板 <code>index.leaf</code> 用 <code>#set("content")</code> 定义内容块，再用 <code>#embed("base")</code> 套上骨架：</p>
+<pre><code>#set("content") {
+    &lt;h1&gt;Acronyms&lt;/h1&gt;
+    #if(acronyms) {
+    &lt;table&gt;
+        &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;th&gt;Short&lt;/th&gt;
+                &lt;th&gt;Long&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            #for(acronym in acronyms) {
+            &lt;tr&gt;
+                &lt;td&gt;&lt;a href="/acronyms/#(acronym.id)"&gt;#(acronym.short)&lt;/a&gt;&lt;/td&gt;
+                &lt;td&gt;#(acronym.long)&lt;/td&gt;
+            }
+            &lt;/tbody&gt;
+    &lt;/table&gt;
+    } else {
+    &lt;h2&gt;There aren't any acronyms yet!&lt;/h2&gt;
+    }
+}
+
+#embed("base")</code></pre>
+<p>这里用到了 Leaf 的三个 tag：<code>#get()</code>、<code>#set()</code>、<code>#embed()</code>。其中 <code>#set()</code> 需要用引号把变量名注册给 Leaf。<code>base.leaf</code> 就是一份可被 <code>index.leaf</code> 复用的模板。</p>
+<h2>二、引入 Bootstrap</h2>
+<p>Bootstrap 是一个由 Twitter 建立的开源前端框架，提供了很多易用的组件。它移动端优先，能适配多种屏幕尺寸，并提供一份定义各种样式的 CSS 文件，以及一些提供组件能力的 JS 文件。</p>
+<p>为了避免每个页面都重复引入，把这些文件统一加在模板 <code>base.leaf</code> 里，其它页面复用即可。下面是改造后的 <code>base.leaf</code>（来自 Bootstrap 官方模板）：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="en"&gt;
+    &lt;head&gt;
+        &lt;!-- Required meta tags --&gt;
+        &lt;meta charset="utf-8"&gt;
+            &lt;meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"&gt;
+
+                &lt;!-- Bootstrap CSS --&gt;
+                &lt;link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"&gt;
+
+                    &lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+                    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;nav class="navbar navbar-expand-md navbar-dark bg-dark"&gt;
+            &lt;a class="navbar-brand" href = "/"&gt;TIL&lt;/a&gt;
+            &lt;button class="navbar-toggler" type="button"
+                data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation"&gt;&gt;
+                &lt;span class="navbar-toggler-icon"&gt;&lt;/span&gt;
+            &lt;/button&gt;
+            &lt;div class="collapse navbar-collapse" id = "navbarSupportedContent"&gt;
+                &lt;ul class="navbar-nav mr-auto"&gt;
+                    &lt;li class="nav-item #if(title == "Homepage"){active}"&gt;
+                        &lt;a href="/" class="nav-link"&gt;Home&lt;/a&gt;
+                    &lt;/li&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        &lt;/nav&gt;
+        &lt;div class="container mt-3"&gt;
+            #get(content)
+        &lt;/div&gt;
+
+        &lt;!-- Optional JavaScript --&gt;
+        &lt;!-- jQuery first, then Popper.js, then Bootstrap JS --&gt;
+        &lt;script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"&gt;&lt;/script&gt;
+        &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"&gt;&lt;/script&gt;
+        &lt;script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"&gt;&lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>页面模板 <code>index.leaf</code> 也顺势用上 Bootstrap 的表格样式：</p>
+<pre><code>#set("content") {
+    &lt;h1&gt;Acronyms&lt;/h1&gt;
+    #if(acronyms) {
+    &lt;table class = "table table-bordered table-hover"&gt;
+        &lt;thead class="thead-light"&gt;
+            &lt;tr&gt;
+                &lt;th&gt;Short&lt;/th&gt;
+                &lt;th&gt;Long&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            #for(acronym in acronyms) {
+            &lt;tr&gt;
+                &lt;td&gt;&lt;a href="/acronyms/#(acronym.id)"&gt;#(acronym.short)&lt;/a&gt;&lt;/td&gt;
+                &lt;td&gt;#(acronym.long)&lt;/td&gt;
+            }
+            &lt;/tbody&gt;
+    &lt;/table&gt;
+    } else {
+    &lt;h2&gt;There aren't any acronyms yet!&lt;/h2&gt;
+    }
+}
+
+#embed("base")</code></pre>
+<div class="callout"><strong>小提示：</strong>把通用布局放在 <code>base.leaf</code> 里，每个页面只关心自己的 <code>content</code>，既减少重复代码，又保证整站风格统一。Bootstrap 的 CSS/JS 只引入一次，所有页面都受益。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

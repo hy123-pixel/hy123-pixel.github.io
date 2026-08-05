@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="了解 Vapor 底层的 SwiftNIO：异步事件驱动网络框架，以及 EventLoop、Channel、Bootstrap、ByteBuffer、Promise/Future 等核心组件。"><title>SwiftNIO 原理 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-swift-nio.svg" alt="SwiftNIO 原理 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 8 分钟</time></div><h1>SwiftNIO 原理</h1><p class="article-lead">Vapor 跑在 SwiftNIO 之上。本文带你俯瞰 SwiftNIO 的架构：事件循环、Channel 流水线、Bootstrap、ByteBuffer，以及 Promise/Future 的协作方式。</p>
+
+<h2>SwiftNIO 概述</h2>
+<p>Vapor 是基于 <a href="https://github.com/apple/swift-nio" target="_blank" rel="noopener">SwiftNIO</a> 构建的，所以最好还是对它进行一些了解，不过这也不是必需的，如果感兴趣，可以了解一下。不感兴趣也可以直接跳过本页内容。</p>
+<p>SwiftNIO 是一个跨平台异步事件驱动的网络应用框架，基于它可以快速开发高性能可维护的协议服务器和客户端。SwiftNIO 是 Swift 生态中等价于 Java 生态下 <a href="https://netty.io/" target="_blank" rel="noopener">Netty</a> 的存在。</p>
+
+<h2>简介</h2>
+<p>SwiftNIO 是使用 Swift 语言构建高性能网络应用的基础层工具。主要是针对那些使用 <code>每个网络链接对应一个线程</code> 的并发模型，因为这种并发模型在网络链接并发量很大时会变的相对低效。SwiftNIO 为了解决这种低效问题，大量使用了非阻塞型 IO 模式，与常见的阻塞型 IO 模式相比，应用可以不必等待网络把数据发送出去或者接收回来后再进行操作，而是让操作系统内核在 IO 操作可以执行时通知 SwiftNIO，来实现异步操作处理。</p>
+<p>SwiftNIO 的目标不是提供类似于 Web 框架的高级应用层解决方案，而是专注于为这些高级应用层提供底层网络能力。当要构建一个 Web 应用时，用户一般不会直接使用 SwiftNIO，他们会使用一些 Swift 生态中提供的 Web 框架完成任务，这些 Web 框架可能下层依赖的网络层基础能力就是 SwiftNIO 提供的。</p>
+
+<h2>SwiftNIO 的基础架构</h2>
+<p>SwiftNIO 通过 NIOCore 模块中定义的 8 种类型提供基础能力：</p>
+<div class="table-wrap"><table class="model-table"><thead><tr><th>类型</th><th>种类</th></tr></thead><tbody>
+<tr><td>EventLoopGroup</td><td>协议</td></tr>
+<tr><td>EventLoop</td><td>协议</td></tr>
+<tr><td>Channel</td><td>协议</td></tr>
+<tr><td>ChannelHandler</td><td>协议</td></tr>
+<tr><td>Bootstrap</td><td>一组相关结构体</td></tr>
+<tr><td>ByteBuffer</td><td>结构体</td></tr>
+<tr><td>EventLoopFuture</td><td>范型类</td></tr>
+<tr><td>EventLoopPromise</td><td>范型结构体</td></tr>
+</tbody></table></div>
+<p>所有的 SwiftNIO 应用最终都是通过上面的 8 种类型构建出来的。</p>
+
+<h3>EventLoops &amp; EventLoopGroups</h3>
+<p>EventLoop 是 SwiftNIO 中的基本元素，它是用来等待 IO 事件的对象，当对应 IO 事件完成时，它会进行一些回调操作。通常使用 SwiftNIO 的应用会使用相对少量的 EventLoop，一般单个 CPU 核心对应一到两个 EventLoop，EventLoop 通常在应用的整个生命周期中一直保持运行，不断的循环执行并分发事件。</p>
+<p>多个 EventLoop 可以被集合成 EventLoopGroup，EventLoopGroup 可以为它管理的多个 EventLoop 分配任务，平衡各 EventLoop 的工作量，避免其中一些 EventLoop 过载，而另外一些 EventLoop 空闲。</p>
+<p>目前 SwiftNIO 提供了 EventLoopGroup 协议的一种实现，以及 EventLoop 协议的两种实现。</p>
+<ul>
+<li><code>MultiThreadedEventLoopGroup</code> 可以使用 <code>pthread</code> 库创建多个线程，并为每一个创建的线程开启一个 <code>SelectedEventLoop</code> 运行。</li>
+<li><code>SelectedEventLoop</code> 是 EventLoop 协议的一种实现，它根据所在的系统平台不同，使用 <code>kqueue</code> 或 <code>epoll</code> 方式管理来自文件描述符的 IO 事件或者派发工作。</li>
+<li><code>EmbeddedEventLoop</code> 是 EventLoop 协议的另一种实现，是 EventLoop 的一个仿制品，主要用来写测试用例。</li>
+</ul>
+
+<h3>Channels &amp; Channel Handlers &amp; Channel Pipelines &amp; Channel Contexts</h3>
+<p>SwiftNIO 用户使用 EventLoop 的主要场景是创建 EventLoopPromise 类型或者调度任务，但他们需要花大量精力来处理 <code>Channel</code> 和 <code>ChannelHandler</code>。</p>
+<p>在 SwiftNIO 应用中，每一个被处理的文件描述符都需要与一个 Channel 结合，Channel 拥有这个文件描述符，并负责管理它的生命周期，同时也需要处理这个文件描述符相关的事件。当操作系统内核通知 EventLoop 一个文件描述符相关的事件时，EventLoop 就会通知拥有这个文件描述符的 Channel 对象。</p>
+<p>Channel 本身并没有太大作用，它主要用来传递数据。ChannelPipeline 是由一系列 ChannelHander 对象组成，ChannelPipeline 用来处理 Channel 上传递过来的数据，相当于数据处理流水线。</p>
+<p>ChannelHandler 可以通过 ChannelHandlerContext 了解自己在 ChannelPipeline 中的执行环境，获取自己前后结点对应的 ChannelHander 对象，保证事件可以在 ChannelPipeline 中双向流动。SwiftNIO 中内置了一些 ChannelHandler，用来进行特定目的的数据处理。</p>
+<p>SwiftNIO 也内置了一些 Channel 协议的实现，例如：ServerSocketChannel 可以用来接受远端的 Socket 连接，SocketChannel 用来处理 TCP 连接，DatagramChannel 用来处理 UDP 数据包。EmbeddedChannel 用来写测试用例。</p>
+<p>ChannelPipeline 是线程安全的，ChannelPipeline 中的所有代码逻辑都被放到同一个线程中执行，所以为了不阻塞 ChannelPipeline 的执行，需要每一个 ChannelHandler 中的逻辑都不能执行阻塞型的代码逻辑，否则会影响整个 ChannelPipeline 的执行效率。</p>
+
+<h3>Bootstrap</h3>
+<p>使用 EventLoop 也可以直接注册和配置 Channel，SwiftNIO 为了简化 Channel 的创建，也提供了一些内置对象，例如 ServerBootstrap 用来配置监听 Channel，ClientBootstrap 用来注册客户端 TCP 通道，DatagramBootstrap 用来注册 UDP 通道。</p>
+
+<h3>ByteBuffer</h3>
+<p>SwiftNIO 工作过程中，涉及到很多数据缓存区的处理操作，为了处理方便，提供了一些高性能数据结构。ByteBuffer 就是一种快速的支持写时复制特性的数据缓存区数据结构。ByteBuffer 提供了很多有用的特性，可以在非安全模式下使用，也可以关闭边界检查来提高执行性能。大部分场景，还是优先推荐在安全模式下使用 ByteBuffer 数据结构。</p>
+
+<h3>Promises &amp; Futures</h3>
+<p>并发代码和同步代码主要的区别就是执行结果不能立刻返回。SwiftNIO 提供了 EventLoopPromise 和 EventLoopFuture 来处理需要异步返回的操作。</p>
+<p>EventLoopFuture 本质上是函数返回值的占位容器。每一个 EventLoopFuture 都对应一个 EventLoopPromise。当函数的返回值确定下来时，会通过 EventLoopPromise 把函数实际的返回值塞入 EventLoopFuture 对象中。</p>
+<p>如果通过轮询的方式检查 EventLoopFuture 是否完成，会非常低效。因此 EventLoopFuture 内部维护了一个回调列表。用户可以把自己的回调塞入 EventLoopFuture 内部维护的回调列表中，当 EventLoopFuture 获取一个返回结果时，会执行回调列表中的回调代码逻辑，这样用户就能获取到函数执行的结果了。同时为了线程安全，EventLoopFuture 的回调列表会被保证在与其对应的 EventLoopPromise 相同的 EventLoop 上执行，这样就能保证数据的同步访问，避免多线程问题。</p>
+<div class="callout">如果看完这篇介绍，还是有点懵懂的话，下一步，就可以拉下 <a href="https://github.com/apple/swift-nio" target="_blank" rel="noopener">swift-nio</a> 的仓库源码，看看 EventLoopPromise 和 EventLoopFuture 的具体实现了。写代码就像写文章一样，能够读懂优秀仓库的代码，就相当于可以读懂名著一样，对个人提升来说是最快和最直接的。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

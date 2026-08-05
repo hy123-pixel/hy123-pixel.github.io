@@ -1,0 +1,105 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="给 Vapor 3 应用加上用户认证：密码 BCrypt 哈希、用户名唯一约束，以及接口返回数据脱敏。"><title>用户认证概述 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-authentication.svg" alt="用户认证概述 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 8 分钟</time></div><h1>用户认证概述</h1><p class="article-lead">认证是确认“你是谁”的过程。本文带你给 TIL 应用加上密码哈希、用户名唯一约束，并让接口在返回时不再泄露密码。</p>
+<h2>认证与授权的区别</h2>
+<p>认证（Authentication）是验证某个人是否合法的过程。它和授权（Authorization）不同：授权是赋予已登录用户执行某个动作的权力。TIL 应用也遵循常见做法，用“用户名 + 密码”的组合来做认证。</p>
+<p>先在 <code>User</code> 模型里增加 <code>password</code> 字段，并修改初始化方法：</p>
+<pre><code>final class User: Codable {
+    var id: UUID?
+    var name: String
+    var username: String
+    var password: String
+
+    init(name: String, username: String, password: String) {
+        self.name = name
+        self.username = username
+        self.password = password
+    }
+}</code></pre>
+<h2>用 BCrypt 哈希存储密码</h2>
+<p>存储密码有一条铁律：<strong>绝不明文存储</strong>。Vapor 提供了工业级的 <code>BCrypt</code> 算法来对密码做哈希。哈希是<strong>单向</strong>的：明文可以生成哈希值，但从哈希值几乎不可能反推出明文。<code>BCrypt</code> 在哈希时会自动加盐，让“撞库”复原密码代价大到不可接受；同时它还提供验证明文与哈希值是否匹配的功能。所以创建用户前，要先对明文密码做哈希再存储。加密相关能力都放在 <code>Crypto</code> 库中。</p>
+<pre><code>import Crypto
+
+struct UsersController: RouteCollection {
+    ...
+    func createHandler(_ req: Request, user: User) throws -> Future&lt;User&gt; {
+        user.password = try BCrypt.hash(user.password)
+        return user.save(on: req)
+    }
+    ...
+}</code></pre>
+<div class="callout">这样 user 的密码是以哈希值落库的，即便数据库被拖库，攻击者也很难还原出明文密码。</div>
+<h2>保证用户名唯一</h2>
+<p>现在对同名用户没有限制，但后续登录要靠“用户名 + 密码”校验，如果存在重名，登录时就不知道该验证哪一个用户了。因此要给用户名加上唯一约束。</p>
+<pre><code>extension User: Migration {
+    static func prepare(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.create(self, on: conn, closure: { (builder) in
+            try addProperties(to: builder)
+            builder.unique(on: \.username)
+        })
+    }
+}</code></pre>
+<p>这类似于添加外键约束：如果同名用户已经存在，新的同名用户就会创建失败。</p>
+<div class="callout">因为改了表字段和约束，需要<strong>重置一次数据库</strong>让改动生效。在 Xcode 中按住 <code>Option + Run</code> 打开 Schema 设置，给运行时参数加上 <code>revert --all --yes</code> 并勾选运行一次，等价于执行 <code>vapor run revert --all --yes</code>。重置后再运行工程时，记得把该参数取消勾选，新的数据库表关系才会生效。</div>
+<h2>返回数据脱敏</h2>
+<p>从前面的请求返回里能看到密码的哈希值，这很不安全。解决办法是：返回用户数据前做一次转换，只暴露公开字段。新增一个 <code>Public</code> 嵌套类型，并在 <code>User</code> 上提供转换方法。</p>
+<pre><code>final class User: Codable {
+    ...
+
+    final class Public: Codable {
+        var id: UUID?
+        var name: String
+        var username: String
+        init(id: UUID?, name: String, username: String) {
+            self.id = id
+            self.name = name
+            self.username = username
+        }
+    }
+}
+
+extension User.Public: Content {}
+
+extension User {
+    func convertToPublic() -> User.Public {
+        return User.Public(id: self.id, name: self.name, username: self.username)
+    }
+}
+
+extension Future where T: User {
+    func convertToPublic() -> Future&lt;User.Public&gt; {
+        return self.map(to: User.Public.self) { (user) -> User.Public in
+            return user.convertToPublic()
+        }
+    }
+}</code></pre>
+<p>然后让各个处理器都返回 <code>User.Public</code>，查询时也只解码公开字段：</p>
+<pre><code>import Vapor
+import Crypto
+
+struct UsersController: RouteCollection {
+    ...
+    func createHandler(_ req: Request, user: User) throws -> Future&lt;User.Public&gt; {
+        user.password = try BCrypt.hash(user.password)
+        return user.save(on: req).convertToPublic()
+    }
+
+    func getAllHandler(_ req: Request) throws -> Future&lt;[User.Public]&gt; {
+        return User.query(on: req).decode(data: User.Public.self).all()
+    }
+
+    func getHandler(_ req: Request) throws -> Future&lt;User.Public&gt; {
+        return try req.parameters.next(User.self).convertToPublic()
+    }
+
+    func updateHandler(_ req: Request) throws -> Future&lt;User.Public&gt; {
+        return try flatMap(to: User.Public.self, req.parameters.next(User.self), req.content.decode(User.self)) { (user, updatedUser) -> Future&lt;User.Public&gt; in
+
+            user.name = updatedUser.name
+            user.username = updatedUser.username
+
+            return user.save(on: req).convertToPublic()
+        }
+    }
+    ...
+}</code></pre>
+<p>现在所有用户相关的返回数据都不再包含密码相关信息了。</p>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

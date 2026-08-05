@@ -1,0 +1,155 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Vapor 3 中用 Fluent 迁移给数据表加字段、加唯一约束，并按环境创建管理员账号，实现数据库版本控制。"><title>数据库迁移 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-migration.svg" alt="数据库迁移 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 11 分钟</time></div><h1>数据库迁移</h1><p class="article-lead">随着功能迭代，数据表结构也得跟着变。本文用 Vapor 3 的 Fluent 迁移，给 User 加 Twitter 字段、给 Category 加唯一约束，并按环境创建管理员账号。</p>
+<h2>一、给用户加一个 Twitter 账号显示</h2>
+<p>先在 <code>User</code> 模型上增加一个可选的 <code>twitterURL</code> 字段，并同步更新公开结构体与迁移：</p>
+<pre><code>...
+final class User: Codable {
+    ...
+    var twitterURL: String?
+
+    init(name: String, username: String, password: String, twitterURL: String? = nil) {
+        ...
+        self.twitterURL = twitterURL
+    }
+
+    final class Public: Codable {
+        ...
+        var twitterURL: String?
+        init(id: UUID?, name: String, username: String, twitterURL: String? = nil) {
+            ...
+            self.twitterURL = twitterURL
+        }
+    }
+}
+
+...
+
+extension User {
+    func convertToPublic() -> User.Public {
+        return User.Public(id: self.id, name: self.name, username: self.username, twitterURL: self.twitterURL)
+    }
+}
+
+...
+
+extension User: Migration {
+    static func prepare(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.create(self, on: conn, closure: { (builder) in
+            builder.field(for: \.id, isIdentifier: true)
+            builder.field(for: \.name)
+            builder.field(for: \.username)
+            builder.field(for: \.password)
+            builder.unique(on: \.username)
+        })
+    }
+}</code></pre>
+<p>但已上线的数据库不会自动加字段，需要新建一个迁移来改表。新建文件 <code>18-12-26-AddTwitterToUser.swift</code>：</p>
+<pre><code>import FluentPostgreSQL
+import Vapor
+
+struct AddTwitterURLToUser: Migration {
+
+    typealias Database = PostgreSQLDatabase
+
+    static func prepare(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.update(User.self, on: conn) { builder in
+            builder.field(for: \.twitterURL)
+        }
+    }
+
+    static func revert(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.update(User.self, on: conn) { builder in
+            builder.deleteField(for: \.twitterURL)
+        }
+    }
+}</code></pre>
+<p>在 <code>configure.swift</code> 里注册这个迁移：</p>
+<pre><code>public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
+    ...
+    migrations.add(migration: AddTwitterURLToUser.self, database: .psql)
+    services.register(migrations)
+    ...
+}</code></pre>
+<p>然后在 Web 端把 Twitter 字段展示出来。注册表单加上 Twitter 输入框：</p>
+<pre><code>...
+    &lt;form method="post"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="name"&gt;Name&lt;/label&gt;
+            &lt;input type="text" name="name" class="form-control"
+            id="name"/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="twitterURL"&gt;Twitter handle&lt;/lable&gt;
+            &lt;input type="text" name="twitterURL" class="form-control" id="twitterURL" /&gt;
+        &lt;/div&gt;
+...</code></pre>
+<p>用户详情页 <code>user.leaf</code> 显示它：</p>
+<pre><code>&lt;h1&gt;#(user.name)&lt;/h1&gt;
+&lt;h2&gt;#(user.username)
+    #if(user.twitterURL) {
+    - #(user.twitterURL)
+    }
+&lt;/h2&gt;
+...</code></pre>
+<p>注册处理逻辑读取这个字段（为空则存 <code>nil</code>）：</p>
+<pre><code>...
+struct RegisterData: Content {
+    ...
+    let twitterURL: String?
+}
+...
+    func registerPostHandler(_ req: Request, data: RegisterData) throws -> Future&lt;Response&gt; {
+        ...
+        var twitterURL: String?
+        if let twitter = data.twitterURL, !twitter.isEmpty {
+            twitterURL = twitter
+        }
+        let user = User(name: data.name, username: data.username, password: password, twitterURL: twitterURL)
+        ...
+    }
+...</code></pre>
+<h2>二、让类别具有唯一性</h2>
+<p>类别名应该唯一，避免重复创建同名类别。新建迁移 <code>18-12-26-MakeCategoriesUnique.swift</code>，给 <code>name</code> 加唯一约束，并能在回滚时删除它：</p>
+<pre><code>import FluentPostgreSQL
+import Vapor
+
+struct MakeCategoriesUnique: Migration {
+
+    typealias Database = PostgreSQLDatabase
+
+    static func prepare(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.update(Category.self, on: conn) {
+            builder in
+            builder.unique(on: \.name)
+        }
+    }
+
+    static func revert(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.update(Category.self, on: conn) { builder in
+            builder.deleteUnique(from: \.name)
+        }
+    }
+}</code></pre>
+<p>同样在 <code>configure.swift</code> 注册：</p>
+<pre><code>public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
+    ...
+    migrations.add(migration: MakeCategoriesUnique.self, database: .psql)
+    services.register(migrations)
+    ...
+}</code></pre>
+<h2>三、只在开发和测试环境上创建管理员账号</h2>
+<p>管理员账号不该出现在生产库里。借助 <code>env</code> 判断，只在开发/测试环境注册创建管理员的迁移：</p>
+<pre><code>public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
+    ...
+    switch env {
+    case .development, .testing:
+        migrations.add(migration: AdminUser.self, database: .psql)
+    default:
+        break
+    }
+    migrations.add(migration: AddTwitterURLToUser.self, database: .psql)
+    migrations.add(migration: MakeCategoriesUnique.self, database: .psql)
+    services.register(migrations)
+    ...
+}</code></pre>
+<div class="callout"><strong>迁移的本质：</strong>每个迁移都有 <code>prepare</code> 和 <code>revert</code> 两个方法，<code>revert</code> 负责把改动撤销回去。给迁移文件加上日期前缀（如 <code>18-12-26-</code>）是个好习惯，方便排序和追溯。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

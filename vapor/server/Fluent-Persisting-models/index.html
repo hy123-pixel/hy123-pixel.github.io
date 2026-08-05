@@ -1,0 +1,48 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Fluent（Vapor 3 的 ORM）定义数据模型并持久化到数据库，理解 Model、Migration 与 SQLiteModel 的用法。"><title>Fluent 模型持久化 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-Fluent-Persisting-models.svg" alt="Fluent 模型持久化 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 5 分钟</time></div><h1>Fluent 模型持久化</h1><p class="article-lead">Fluent 是 Vapor 3 里的 ORM（对象关系映射）。本文带你定义第一个数据模型 Acronym，并让它通过 Migration 自动建表、持久化到数据库。</p>
+
+<h2>数据库与 Fluent</h2>
+<p><code>Fluent</code> 是 Vapor 中和数据库交互的工具，即是 ORM（Object Relational Mapping，对象关系映射）。它是在 Vapor 和数据库之间的一个抽象层，它的存在让我们操作数据库变得更加容易，我们不需要直接对数据库进行操作。</p>
+<p>Models 是 Swift 中表示数据的术语，并且这个概念在 Fluent 中也是一致的。Models 就是要存入数据库中的对象。</p>
+<p>所有的 Fluent 数据模型都要遵守 <code>Codable</code> 协议，把类加上 <code>final</code> 可以获得性能提升，id 会在存入数据库时填充。Vapor 提供了协议 <code>Content</code>，它是对 <code>Codable</code> 的封装，可以方便在多种数据格式之间进行转换。</p>
+<p>自定义 Model 在数据库中 ID 的名称和类型，需要数据模型遵循 <code>Model</code> 协议。一般 Fluent 针对每种数据库已经定义了各种可以遵循的 Model 协议，如 <code>SQLiteModel</code> 和 <code>SQLiteUUIDModel</code> 以及 <code>SQLiteStringModel</code>。</p>
+<p>要想把数据存入数据库，必须在数据库中建立相应的表，这种建表操作 Fluent 通过 migration 来进行。<strong>Migration 只会执行一次，不会创建已经存在的表。</strong></p>
+<p>我们之后要创建一个缩略语相关的应用，这里可以先把数据模型建立起来：</p>
+<pre><code>$ touch Sources/App/Models/Acronym.swift</code></pre>
+
+<h2>定义数据模型</h2>
+<pre><code>import Vapor
+import FluentSQLite
+
+final class Acronym: Codable {
+    var id: Int?
+    var short: String
+    var long: String
+
+    init(short: String, long: String) {
+        self.short = short
+        self.long = long
+    }
+}
+
+extension Acronym: Model {
+    typealias Database = SQLiteDatabase
+
+    typealias ID = Int
+
+    public static var idKey: IDKey = \Acronym.id
+}
+
+extension Acronym: SQLiteModel {}
+extension Acronym: Migration {}
+extension Acronym: Content {}</code></pre>
+<p>首先定义遵循 <code>Codable</code> 协议的数据类型 <code>Acronym</code>，它有两个字符串类型的属性，另一个属性 <code>id</code> 是留给数据库使用的，数据库在存储数据时，会赋值给每一个数据实例一个唯一标识。</p>
+<p>然后我们又让数据模型遵循 <code>Model</code> 协议，其目的是为了告诉 <code>Fluent</code> 我们要使用哪种数据库来存储数据、数据实例唯一标识符的类型，以及在数据模型中哪一个属性用来表示这个数据实例的唯一标识。每一种数据库其实已经提供了对应的协议类型，以简化操作，我们可以把这部分直接替换成：</p>
+<pre><code>extension Acronym: SQLiteModel {}</code></pre>
+
+<h2>通过 Migration 建表</h2>
+<p>要把数据存入数据库，那么必须让数据库对应地建立一张存放这类数据的数据表，这个建表的任务我们可以让 <code>Migration</code> 来处理。但这要求我们的数据模型遵循协议 <code>Migration</code>。对于简单的数据模型，我们只需要遵循这个协议就可以了，复杂的时候可能需要我们自己实现一个 <code>Migration</code>。</p>
+<p>要让应用在启动时创建数据表，我们需要在 <code>configure.swift</code> 文件中进行配置：</p>
+<pre><code>migrations.add(model: Acronym.self, database: .sqlite)</code></pre>
+<div class="callout">提示：一种类型的数据表只会创建一次，如果之后数据模型内部发生了调整，也不会再重新创建新表了。这也是为什么后续修改字段后往往需要重置数据库的原因。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

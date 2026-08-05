@@ -1,0 +1,50 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="了解 HTTP 协议基础：请求与响应的结构、常用的请求方法、状态码分类，以及 Vapor 对 HTTP 1.1 与 2.0 的支持。"><title>HTTP 基础 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-http-basic.svg" alt="HTTP 基础 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>HTTP 基础</h1><p class="article-lead">写 Web 服务绕不开 HTTP。本文梳理 HTTP 协议的核心概念：请求与响应的结构、常用方法、状态码分类，为后续写接口打基础。</p>
+
+<h2>HTTP 协议</h2>
+<p>HTTP（Hyper Text Transfer Protocol）超文本传输协议，是 Web 的基础内容。有两个实体：客户端（Client）、服务端（Server）。客户端向服务端发起请求，索要资源。服务端向客户端返回需要的资源。如果服务端满足不了客户端的需要，需要返回相关的说明。参考文档：<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP" target="_blank" rel="noopener">HTTP 参考文档</a>。</p>
+
+<h2>HTTP 请求（Request）</h2>
+<p>请求包含几个部分：</p>
+
+<h3>HTTP 2.0</h3>
+<p><code>HTTP 2.0</code> 在效率和延迟上对 <code>HTTP 1.1</code> 进行了扩展，单个的请求和 <code>HTTP 1.1</code> 没有什么区别，但是 <code>HTTP 2.0</code> 的请求可以并行执行。服务器可以预测客户端的请求，从而在请求还没有发出的情况下把客户端可能需要的资源提前推送给客户端。<strong>Vapor 支持 HTTP 1.1 和 HTTP 2.0</strong>。</p>
+<ul>
+<li>请求行。例如：<code>GET /about.html HTTP/1.1</code>，它指定了请求的方式为 <code>GET</code>，请求的资源 uri 是 <code>/about.html</code> 文件，使用的传输协议是 <code>HTTP</code>，传输协议的版本号是 <code>1.1</code>。</li>
+<li>主机名。可能有多个服务器共用同一个 IP 地址，为了区别它们，主机名被用来处理这种情况。</li>
+<li>请求头。包含请求时添加的额外信息：<code>Authorization</code>、<code>Accept</code>、<code>Cache-Control</code>、<code>Content-Length</code>、<code>Content-Type</code> 等。请求头是键-值对的集合。</li>
+<li>可选请求数据。例如：POST 方式请求可以携带一些请求数据。</li>
+</ul>
+
+<h3>客户端可用的请求方法</h3>
+<p>客户端发起请求时可以用多种方式进行选择：</p>
+<ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/GET" target="_blank" rel="noopener">GET</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/HEAD" target="_blank" rel="noopener">HEAD</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/POST" target="_blank" rel="noopener">POST</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/PUT" target="_blank" rel="noopener">PUT</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/DELETE" target="_blank" rel="noopener">DELETE</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/CONNECT" target="_blank" rel="noopener">CONNECT</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/OPTIONS" target="_blank" rel="noopener">OPTIONS</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/TRACE" target="_blank" rel="noopener">TRACE</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods/PATCH" target="_blank" rel="noopener">PATCH</a></li>
+</ul>
+<div class="callout">Web 浏览器只能使用 GET 和 POST 两种方式的请求，并且不能修改请求头，要修改请求头只能依赖 JavaScript。其它客户端像 iOS 应用可以使用所有的 HTTP 请求方式，更加灵活。</div>
+
+<h2>HTTP 响应（Response）</h2>
+<p>响应包含几个部分：</p>
+<p>HTTP 响应码参考：<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status" target="_blank" rel="noopener">标准响应码列表参考</a>。</p>
+<ul>
+<li>状态行。包含状态码、协议及其版本号、信息文本。状态码和状态信息文本表明客户端请求的结果是否成功。状态码按第一位数字分成五类：
+<ul>
+<li>1 - 信息响应</li>
+<li>2 - 请求成功，正常返回。例如：200 OK。204 表示请求成功，但返回内容为空。</li>
+<li>3 - 重定向响应。响应的内容是在请求指向的服务器之外的其它服务器拿到后返回的。</li>
+<li>4 - 客户端请求错误。418 是一个著名的状态码，有着特殊的意义。</li>
+<li>5 - 服务端错误。</li>
+</ul>
+</li>
+<li>响应头。例如：<code>Set-cookie</code>、<code>WWW-Authenticate</code>、<code>Cache-Control</code>、<code>Content-Length</code> 等。响应头与请求头类似，也是由键值对（key-value）组成的。</li>
+<li>可选响应体。带着响应返回的数据，可以是 HTML 页面内容、图片或者 JSON 数据。</li>
+</ul>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

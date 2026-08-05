@@ -1,0 +1,110 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 实现「全部分类」列表页与单个分类详情页，列出分类及其下的缩略语。"><title>全部分类页 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-all-categories.svg" alt="全部分类页 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>全部分类页</h1><p class="article-lead">本章实现网站上的「分类」相关页面：一个列出所有分类的列表页，以及点进去查看某分类下全部缩略语的详情页。</p>
+
+<h2>上下文与路由</h2>
+<p>在 <code>WebsiteController.swift</code> 中定义两个上下文：<code>AllCategoriesContext</code> 用于列表页；<code>CategoryConext</code>（源站原文如此命名）用于单个分类详情页，内部用一个 <code>Future&lt;[Acronym]&gt;</code> 承载该分类下的缩略语。</p>
+<pre><code>struct AllCategoriesContext: Encodable {
+    let title = "All Categories"
+    let categories: Future&lt;[Category]&gt;
+}
+struct CategoryConext: Encodable {
+    let title: String
+    let category: Category
+    let acronyms: Future&lt;[Acronym]&gt;
+}</code></pre>
+<p>注册两条路由：<code>/categories</code> 显示全部分类，<code>/category/:id</code> 显示某个分类。</p>
+<pre><code>router.get("categories", use: allCategoriesHandler)
+router.get("category", Category.parameter, use: categoryHandler)</code></pre>
+
+<h2>列表页处理方法</h2>
+<p><code>allCategoriesHandler</code> 用 <code>Category.query(on: req).all()</code> 取出所有分类，渲染 <code>allCategories</code> 模板。</p>
+<pre><code>func allCategoriesHandler(_ req: Request) throws -> Future&lt;View&gt; {
+    let categories = Category.query(on: req).all()
+    let context = AllCategoriesContext(categories: categories)
+    return try req.view().render("allCategories", context)
+}</code></pre>
+<p><code>categoryHandler</code> 先取出目标 <code>Category</code>，再通过 <code>category.acronyms.query(on: req).all()</code> 拿到它的关联缩略语，并渲染 <code>category</code> 模板。</p>
+<pre><code>func categoryHandler(_ req: Request) throws -> Future&lt;View&gt; {
+    return try req.parameters.next(Category.self)
+        .flatMap(to: View.self) { category in
+            let acronyms = try category.acronyms.query(on: req).all()
+            let context = CategoryConext(title: category.name, category: category, acronyms: acronyms)
+            return try req.view().render("category", context)
+    }
+}</code></pre>
+
+<h2>allCategories.leaf 模板</h2>
+<p>用表格展示分类名，每个名字链接到对应分类详情页；若还没有任何分类则显示提示文案。</p>
+<pre><code>#set("content"){
+    &lt;h1&gt;All Categories&lt;/h1&gt;
+    #if(count(categories) &gt; 0) {
+    &lt;table class="table table-bordered table-hover"&gt;
+        &lt;thead class="thead-light"&gt;
+            &lt;tr&gt;
+                &lt;th&gt;
+                    Name
+                &lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;thead&gt;
+        &lt;tbody&gt;
+            #for(category in categories) {
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        &lt;a href="/category/#(category.id)"&gt;
+                            #(category.name)
+                        &lt;/a&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            }
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+    } else {
+    &lt;h2&gt;There aren't any categories yet!&lt;/h2&gt;
+    }
+}
+
+#embed("base")</code></pre>
+
+<h2>category.leaf 模板</h2>
+<p>展示分类名称，并用表格列出该分类下每个缩略语的简称与全称。</p>
+<pre><code>#set("content") {
+    &lt;h1&gt;#(category.name)&lt;/h1&gt;
+    #if(count(acronyms) &gt; 0) {
+        &lt;table class="table table-bordered table-hover"&gt;
+            &lt;thead class="thead-light"&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;
+                        Short
+                    &lt;/th&gt;
+                    &lt;th&gt;
+                        Long
+                    &lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                #for(acronym in acronyms) {
+                    &lt;tr&gt;
+                        &lt;td&gt;
+                            &lt;a href="/acronyms/#(acronym.id)"&gt;
+                                #(acronym.short)
+                            &lt;/a&gt;
+                        &lt;/td&gt;
+                        &lt;td&gt;
+                            #(acronym.long)
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+                }
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    } else {
+        &lt;h2&gt;There aren't any acronyms yet!&lt;/h2&gt;
+    }
+}
+#embed("base")</code></pre>
+
+<h2>导航入口</h2>
+<p>在 <code>base.leaf</code> 加入「All Categories」导航项，访问本页时高亮。</p>
+<pre><code>&lt;li class="nav-item #if(title=="All Categories"){active}"&gt;
+    &lt;a href="/categories" class="nav-link"&gt;All Categories&lt;/a&gt;
+&lt;/li&gt;</code></pre>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

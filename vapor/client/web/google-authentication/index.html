@@ -1,0 +1,124 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 + Imperial 接入 Google OAuth 2.0 登录，让用户用 Google 账号一键注册登录网站。"><title>Google 登录 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-google-authentication.svg" alt="Google 登录 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 8 分钟</time></div><h1>Google 登录</h1><p class="article-lead">有时用户不想每到一个网站都注册新账号，本章用 Vapor 3 配合 Imperial 接入 Google 的 OAuth 2.0，让用户用 Google 账号一键登录。</p>
+
+<h2>OAuth 2.0</h2>
+<p><code>OAuth 2.0</code> 是一个用户身份认证框架，允许第三方应用访问用户信息。通过它可以用 Google 账号登录我们之前做的网站：用自己的 Google 账号向 Google 发起认证请求，同意授权后，Google 会回传一个 Token，我们的应用再用这个 Token 去访问 Google 的 API（如邮箱、头像、昵称等）。进行 OAuth 2.0 认证前，你需要有一个 Google 账号。</p>
+
+<h2>使用 Imperial</h2>
+<p>按 OAuth 流程手写 Google 认证非常繁琐，好在社区已有成熟库 <code>Imperial</code> 帮我们完成这些步骤。</p>
+<p>先在 <code>package.swift</code> 加入依赖：Auth 与 Imperial，并把 <code>Imperial</code> 加进 App 的 target 依赖。</p>
+<pre><code>        .package(url: "https://github.com/vapor/auth.git", from: "2.0.1"),
+        .package(url: "https://github.com/vapor-community/Imperial.git", from: "0.7.0")
+    ],
+    targets: [
+        .target(name: "App", dependencies: ["FluentPostgreSQL", "Authentication", "Vapor", "Leaf", "Imperial"]),
+...</code></pre>
+<p>新建 <code>ImperialController.swift</code>，先搭一个空的 <code>RouteCollection</code>。</p>
+<pre><code>import Vapor
+import Authentication
+import Imperial
+
+struct ImperialController: RouteCollection {
+    func boot(router: Router) throws {
+
+    }
+}</code></pre>
+<p>在 <code>routes.swift</code> 里把 <code>ImperialController</code> 注册进路由。</p>
+<pre><code>import Vapor
+
+/// Register your application's routes here.
+public func routes(_ router: Router) throws {
+
+    ...
+
+    let imperialController = ImperialController()
+    try router.register(collection: imperialController)
+}</code></pre>
+<div class="callout">注意：Google 在中国大陆处于被屏蔽状态，注册应用和调试时都需要连接 VPN 代理才能正常访问。</div>
+
+<h2>在 Google 上注册应用</h2>
+<p>前往 Google 开发者控制台 <a href="https://accounts.google.com/signin/v2/identifier?service=cloudconsole&amp;passive=1209600&amp;osid=1&amp;continue=https%3A%2F%2Fconsole.developers.google.com%2Fapis%2Fcredentials&amp;followup=https%3A%2F%2Fconsole.developers.google.com%2Fapis%2Fcredentials&amp;flowName=GlifWebSignIn&amp;flowEntry=ServiceLogin">注册地址</a> 注册好我们的 Web 应用后，就可以准备使用 OAuth 了。</p>
+
+<h2>实现 Google 登录回调</h2>
+<p>在 <code>ImperialController</code> 中，先定义一个 <code>GoogleUserInfo</code> 用于接收 Google 返回的用户信息，再扩展 <code>Google</code> 提供一个 <code>getUser(on:)</code> 方法：带上 <code>accessToken</code> 请求 Google 的用户信息接口，并把返回解码成 <code>GoogleUserInfo</code>。</p>
+<pre><code>//
+//  ImperialController.swift
+//  App
+//
+//  Created by joker on 2018/12/16.
+//
+
+import Vapor
+import Authentication
+import Imperial
+
+struct GoogleUserInfo: Content {
+    let email: String
+    let name: String
+}
+
+extension Google {
+    static func getUser(on req: Request) throws -> Future&lt;GoogleUserInfo&gt; {
+        var headers = HTTPHeaders()
+        headers.bearerAuthorization = try BearerAuthorization(token: req.accessToken())
+
+        let googleAPIURL = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+
+        return try req.client().get(googleAPIURL, headers: headers).map(to: GoogleUserInfo.self, { res in
+            guard res.http.status == .ok else {
+                if res.http.status == .unauthorized {
+                    throw Abort.redirect(to: "/login-google")
+                } else {
+                    throw Abort(.internalServerError)
+                }
+            }
+            return try res.content.syncDecode(GoogleUserInfo.self)
+        })
+    }
+}</code></pre>
+<p>在 <code>boot(router:)</code> 中用 <code>router.oAuth(from:authenticate:callback:scope:completion:)</code> 注册 Google 登录路由，回调地址从环境变量 <code>GOOGLE_CALLBACK_URL</code> 读取。</p>
+<pre><code>struct ImperialController: RouteCollection {
+    func boot(router: Router) throws {
+
+        guard let callbackURL = Environment.get("GOOGLE_CALLBACK_URL") else {
+            fatalError("Callback URL not set")
+        }
+
+        try router.oAuth(
+            from: Google.self,
+            authenticate: "login-google",
+            callback: callbackURL,
+            scope: ["profile", "email"],
+            completion: processGoogleLogin)
+    }
+
+    func processGoogleLogin(_ req: Request, token: String) throws -> Future&lt;ResponseEncodable&gt; {
+        return try Google.getUser(on: req).flatMap(to: ResponseEncodable.self, { userInfo in
+            return User.query(on: req).filter(\.username == userInfo.email).first().flatMap(to: ResponseEncodable.self, { foundUser in
+                guard let existingUser = foundUser else {
+                    let user = User(name: userInfo.name, username: userInfo.email, password: "")
+                    return user.save(on: req).map(to: ResponseEncodable.self, { user in
+                        try req.authenticate(user)
+                        return req.redirect(to: "/")
+                    })
+                }
+
+                try req.authenticateSession(existingUser)
+                return req.future(req.redirect(to: "/"))
+
+            })
+        })
+    }
+}</code></pre>
+<p>处理逻辑是：拿到用户信息后，按邮箱查找是否已有用户；没有就新建一个（以邮箱作用户名），并 <code>authenticate</code> 登录；已有则直接 <code>authenticateSession</code> 登录，最后都重定向回首页。</p>
+
+<h2>登录页加按钮</h2>
+<p>在 <code>login.leaf</code> 中放一个「使用 Google 登录」的图片按钮，链接到 <code>/login-google</code>。</p>
+<pre><code>...
+&lt;/form&gt;
+&lt;a href="/login-google"&gt;
+    &lt;img class="mt-3" src="/images/sign-in-with-google.png" alt="Sign In With Google"&gt;
+&lt;/a&gt;
+}
+#embed("base")</code></pre>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

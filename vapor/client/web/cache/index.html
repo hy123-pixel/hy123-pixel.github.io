@@ -1,0 +1,23 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="了解 Vapor 3 的 KeyedCache 协议，以及内存缓存、数据库/Redis 缓存各自的适用场景与缓存失效策略。"><title>缓存 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-cache.svg" alt="缓存 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>缓存</h1><p class="article-lead">缓存能让接口变快、少调外部 API。本文介绍 Vapor 3 的 KeyedCache 协议，以及内存缓存、数据库/Redis 缓存各自适合什么场景。</p>
+<h2>一、KeyedCache 协议</h2>
+<p>Vapor 定义了 <code>KeyedCache</code> 协议，用来描述各种缓存机制需要满足的功能。它本身定义得很简单，只规定了「按 key 读写、删除」这三种能力：</p>
+<pre><code>public protocol KeyedCache {
+
+    func get&lt;D&gt;(_ key: String, as decodable: D.Type) -> Future&lt;D?&gt; where D: Decodable
+
+    func set&lt;E&gt;(_ key: String, to encodable: E) -> Future&lt;Void&gt; where E: Encodable
+
+    func remove(_ key: String) -> Future&lt;Void&gt;
+}</code></pre>
+<p>无论底层是内存、数据库还是 Redis，只要遵循这个协议，上层用法都是一致的：<code>get</code> 取值、<code>set</code> 存值、<code>remove</code> 删除。</p>
+<h2>二、内存缓存</h2>
+<p>内存缓存把数据存放在程序运行时分配的内存空间中。因为没有外部依赖，这种缓存非常适合在开发和测试阶段使用。不足之处在于：一旦程序结束，内存中的缓存数据就丢失了，而且不能在多个应用实例之间共用。</p>
+<p><code>MemoryKeyedCache</code> 可以在应用的所有事件循环（EventLoop）之间公用——也就是说，一旦有数据被缓存，所有事件循环都能访问它，非常利于开发和测试阶段。但这种方式不是线程安全的，要求同步访问，因此在生产环境下异步访问这些内存缓存数据可能存在问题。</p>
+<p><code>DictionaryKeyedCache</code> 只对当前事件循环自己有效，不同的事件循环各有自己的 Dictionary 缓存，所以一次会话中不同请求之间不能共用这种缓存。它适用于生产环境下的缓存。</p>
+<h2>三、数据库缓存</h2>
+<p>所有的数据库都可以用来做缓存，适用于「应用重启后」或「多个应用实例之间」需要共用缓存数据的情况。可以使用主数据库来缓存，也可以专门开辟一个数据库来缓存，常用的有 <code>Redis</code> 数据库缓存。</p>
+<p><code>Redis</code> 是一种开源缓存服务，能作为 Web 应用的缓存数据库，并被多数云服务商支持。它易于配置、快速、特性丰富。</p>
+<p>构建 Web 应用时，向其它 API 请求数据可能造成延时；如果对方很慢，你自己接口的响应也会变慢。另外，其它 API 可能做了流量限制，一段时间内不能超过最大访问次数。有了缓存，就能减少访问这些外部 API 的次数，让你的接口响应更快速。</p>
+<p>在计算机科学中，缓存是很重要的概念。存储 Web 应用缓存数据有几种方式：内存、Fluent 数据库、Redis 等。不同的缓存方式有不同的失效策略：LRU（Least Recently Used，最近最少使用）、RR（Random Replacement，随机替换）、LIFO（Last In First Out，后进先出）。</p>
+<div class="callout"><strong>怎么选：</strong>开发/测试图省事用 <code>MemoryKeyedCache</code>；生产环境要跨实例共享、追求性能，就上 Redis；简单场景用 Fluent 数据库缓存也能凑合。选哪种，取决于你的部署形态和一致性要求。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

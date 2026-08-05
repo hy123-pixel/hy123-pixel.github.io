@@ -1,0 +1,63 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Vapor 3 支持 SQLite、MySQL、PostgreSQL 三种数据库驱动，本文讲解如何用 configure.swift 配置 SQLite 数据库，并保持 Vapor 3 写法。"><title>配置数据库 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-configure-database.svg" alt="配置数据库 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 5 分钟</time></div><h1>配置数据库</h1><p class="article-lead">Vapor 3 原生支持 SQLite、MySQL、PostgreSQL 三种关系型数据库。本文带你认识它们，并学会用 configure.swift 把 SQLite 配起来开始开发。</p>
+
+<h2>Vapor 支持的数据库</h2>
+<p>Vapor 原生提供了三种数据库的驱动：<code>SQLite</code>、<code>MySQL</code>、<code>PostgreSQL</code>。</p>
+<p>数据库分为两种：<strong>关系型数据库（SQL）</strong> 和 <strong>非关系型数据库（NoSQL）</strong>。关系型数据库适合存放结构化的数据，目前 Vapor 只支持关系型数据库。但不久的将来也会支持非关系型数据库。</p>
+<p>关系型数据库面临的问题是：已经存入数据库的结构在后期可能需要变更，非关系型数据库正是为了解决这个问题而生的。</p>
+
+<h2>SQLite</h2>
+<p>一个简单的基于文件的关系型数据库系统，设计目标是嵌入到应用中使用，对于单进程应用很有用。它依靠文件锁保证数据库完整性，所以不适合大量写入操作的应用，也不能跨服务器使用。它适合在开发原型和测试时使用。</p>
+
+<h2>MySQL</h2>
+<p>一个开源关系型数据库，流行于 LAMP 应用栈中，它很容易使用，同时被大多数云提供商支持。</p>
+
+<h2>PostgreSQL</h2>
+<p>一个开源关系数据库。主要设计目标是商用，扩展性和标准化是它的核心目标。</p>
+
+<h2>Docker</h2>
+<p>我们使用 Docker 在本地布置数据库，它有别于虚拟机，很方便。MySQL 和 PostgreSQL 可以使用 Docker 部署在本地。</p>
+
+<h2>只使用 SQLite 可以简化开发，适用于原型开发期</h2>
+<p>为了简化数据库配置，我们使用 SQLite 使用本地文件存放数据。配置数据库：</p>
+<pre><code>   /// Register providers first
+    try services.register(FluentSQLiteProvider())
+
+    // Configure a SQLite database
+    let sqlite = try SQLiteDatabase(storage: .file(path: "db.sqlite"))
+
+    /// Register the configured SQLite database to the database config.
+    var databases = DatabasesConfig()
+    databases.add(database: sqlite, as: .sqlite)
+    services.register(databases)
+
+    /// Configure migrations
+    var migrations = MigrationConfig()
+    migrations.add(model: Acronym.self, database: .sqlite)
+    services.register(migrations)</code></pre>
+<p>对应的 <code>Package.swift</code> 需要加入 FluentSQLite 依赖：</p>
+<pre><code>// swift-tools-version:4.0
+import PackageDescription
+
+let package = Package(
+    name: "TILApp",
+    dependencies: [
+        // 💧 A server-side Swift web framework.
+        .package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"),
+
+        // 🔵 Swift ORM (queries, models, relations, etc) built on SQLite 3.
+        .package(url: "https://github.com/vapor/fluent-sqlite.git", from: "3.0.0")
+    ],
+    targets: [
+        .target(name: "App", dependencies: ["FluentSQLite", "Vapor"]),
+        .target(name: "Run", dependencies: ["App"]),
+        .testTarget(name: "AppTests", dependencies: ["App"])
+    ]</code></pre>
+<h2>数据库配置是怎么工作的</h2>
+<p>数据库的配置主要在 <code>configure.swift</code> 文件中完成。</p>
+<ul>
+<li>首先注册 <code>FluentSQLiteProvider</code> 服务，这个服务是通过 <code>Fluent</code> 这个 ORM 中间层来对 SQLite 数据库进行操作的服务，让开发者可以不用理会具体的数据库。</li>
+<li>然后创建数据库，因为 <code>Vapor</code> 支持在同一个应用内使用多个数据库实例，所以添加数据库实例的方式是先创建一个数据库配置（<code>DatabasesConfig</code>），记录所有用到的数据库实例，然后统一注册进服务里。</li>
+<li>最后把数据库要存放的数据模型和对应要存放的数据库类型绑定，统一使用 <code>Migration</code> 服务进行注册使用。</li>
+</ul>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

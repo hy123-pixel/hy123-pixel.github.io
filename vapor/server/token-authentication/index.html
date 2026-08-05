@@ -1,0 +1,132 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Basic 认证基础上引入 token：用户登录一次换取凭证，之后请求只需带上 token 即可。"><title>Token 认证 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-token-authentication.svg" alt="Token 认证 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 8 分钟</time></div><h1>Token 认证</h1><p class="article-lead">Basic 认证后只有登录用户能创建缩略语，但其它请求每次都传密码太麻烦。本文让用户登录一次换取 token，之后请求只带 token 即可。</p>
+<h2>为什么需要 token</h2>
+<p>Basic 认证实现后，只有被认证通过的用户才能创建缩略语，但其它请求并没有被保护起来；更关键的是，如果每次请求都要传“用户名:密码”的认证头，会非常麻烦也不安全。我们可以让用户登录一次，认证通过后发给他一个“已登录凭证”（token）由他自己保存，之后的请求都带上这个 token 即可。注意：token 不能存用户名密码明文。</p>
+<h2>创建 Token 模型</h2>
+<p>新建一个 <code>Token</code> 模型，保存随机生成的 token 字符串，以及它所属的用户 ID：</p>
+<pre><code>import Foundation
+import Vapor
+import FluentPostgreSQL
+import Authentication
+
+final class Token: Codable {
+    var id: UUID?
+    var token: String
+    var userID: User.ID
+
+    init(token: String, userID: User.ID) {
+        self.token = token
+        self.userID = userID
+    }
+}
+
+extension Token: PostgreSQLUUIDModel  {}
+extension Token: Migration {
+    static func prepare(on conn: PostgreSQLConnection) -> Future&lt;Void&gt; {
+        return Database.create(self, on: conn) { builder in
+            try addProperties(to: builder)
+            builder.reference(from: \.userID, to: \User.id)
+        }
+    }
+}
+extension Token: Content {}
+
+extension Token {
+    static func generate(for user: User) throws -> Token {
+        let random = try CryptoRandom().generateData(count: 16)
+        return try Token(token: random.base64EncodedString(), userID: user.requireID())
+    }
+}</code></pre>
+<h2>注册 Token 迁移</h2>
+<p>别忘了把 <code>Token</code> 加入迁移配置：</p>
+<pre><code>migrations.add(model: Token.self, database: .psql)</code></pre>
+<h2>登录接口</h2>
+<p>在 <code>UsersController</code> 里加一个用 Basic 认证保护的 <code>login</code> 路由。登录成功后，为当前用户生成一个 token 并保存：</p>
+<pre><code>struct UsersController: RouteCollection {
+    func boot(router: Router) throws {
+        ...
+        let basicAuthMiddleware = User.basicAuthMiddleware(using: BCryptDigest())
+        let basicAuthGroup = usersGroup.grouped(basicAuthMiddleware)
+        basicAuthGroup.post("login", use: login)
+
+    }
+    func login(_ req: Request) throws -> Future&lt;Token&gt; {
+        let user = try req.requireAuthenticated(User.self)
+        let token = try Token.generate(for: user)
+        return token.save(on: req)
+    }
+}</code></pre>
+<h2>让 Token 遵循认证协议</h2>
+<p>为了让 Vapor 的认证中间件能识别这个 token，需要让 <code>Token</code> 遵循 <code>Authentication.Token</code> 与 <code>BearerAuthenticatable</code>，并让 <code>User</code> 遵循 <code>TokenAuthenticatable</code>：</p>
+<pre><code>extension Token: Authentication.Token {
+
+    typealias UserType = User
+
+    static let userIDKey: UserIDKey = \Token.userID
+}
+
+extension Token: BearerAuthenticatable {
+    static let tokenKey: TokenKey = \Token.token
+}</code></pre>
+<pre><code>extension User: TokenAuthenticatable {
+    typealias TokenType = Token
+}</code></pre>
+<h2>用 token 中间件保护路由</h2>
+<p>把创建缩略语等写操作改用 token 中间件保护。认证通过后可在处理器里通过 <code>req.requireAuthenticated(User.self)</code> 拿到当前登录用户，把它记到 <code>Acronym</code> 上：</p>
+<pre><code>struct AcronymCreateData: Content {
+    let short: String
+    let long: String
+}
+struct AcronymsController: RouteCollection {
+    func boot(router: Router) throws {
+        let routeGroup = router.grouped("api", "acronyms")
+
+        let tokenAuthMiddleware = User.tokenAuthMiddleware()
+        let guardAuthMiddleware = User.guardAuthMiddleware()
+        let protectd = routeGroup.grouped(tokenAuthMiddleware, guardAuthMiddleware)
+        protectd.post(AcronymCreateData.self, use: createHandler)
+        ...
+    }
+
+    func createHandler(_ req: Request, data: AcronymCreateData) throws -> Future&lt;Acronym&gt; {
+        let user = try req.requireAuthenticated(User.self)
+        let acronym = try Acronym(short: data.short, long: data.long, userID: user.requireID())
+        return acronym.save(on: req)
+    }
+    ...
+}</code></pre>
+<div class="callout">除创建接口外，其它可能破坏数据的接口（更新、删除、关联分类、创建分类、创建用户等）也要加上 token 中间件保护。对 GET 请求一般不加保护，目的是让未登录用户也有读取权限。</div>
+<h2>给其它写操作加保护</h2>
+<p>更新缩略语时同样记录当前用户：</p>
+<pre><code>    protectd.put(Acronym.parameter, use: updateHandler)
+    protectd.delete(Acronym.parameter, use: deleteHandler)
+    protectd.post(Acronym.parameter,"categories", Category.parameter, use: addCategoriesHandler)
+    protectd.delete(Acronym.parameter, "categories", Category.parameter, use: removeCategoriesHandler)
+...
+
+    func updateHandler(_ req: Request) throws -> Future&lt;Acronym&gt; {
+        return try flatMap(to: Acronym.self, req.parameters.next(Acronym.self), req.content.decode(AcronymCreateData.self)) { (acronym, updateData) -> Future&lt;Acronym&gt; in
+            acronym.short = updateData.short
+            acronym.long = updateData.long
+
+            let user = try req.requireAuthenticated(User.self)
+            acronym.userID = try user.requireID()
+
+            return acronym.save(on: req)
+        }
+    }</code></pre>
+<p>分类控制器与用户控制器的创建接口也用同样的方式保护：</p>
+<pre><code>struct CategoriesController: RouteCollection {
+    func boot(router: Router) throws {
+        ...
+        let tokenAuthMiddleware = User.tokenAuthMiddleware()
+        let guardAuthMiddleware = User.guardAuthMiddleware()
+        let tokenAuthGroup = categoriesRoute.grouped(tokenAuthMiddleware, guardAuthMiddleware)
+        tokenAuthGroup.post(Category.self, use: createHandler)
+    }
+    ...</code></pre>
+<pre><code>    let tokenAuthMiddleware = User.tokenAuthMiddleware()
+    let guardAuthMiddleware = User.guardAuthMiddleware()
+    let tokenAuthGroup = usersGroup.grouped(tokenAuthMiddleware, guardAuthMiddleware)
+    tokenAuthGroup.post(User.self, use: createHandler)</code></pre>
+<p>现在所有可能破坏数据的 API 都加了认证中间层保护，只有认证通过的用户才能执行相关操作。</p>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

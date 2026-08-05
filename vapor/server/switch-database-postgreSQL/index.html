@@ -1,0 +1,74 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="从 SQLite 切换到 PostgreSQL：用 Docker 起数据库，并在工程里改接 FluentPostgreSQL，验证外键约束真正生效。"><title>切换到 PostgreSQL · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-switch-database-postgreSQL.svg" alt="切换到 PostgreSQL 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>切换到 PostgreSQL</h1><p class="article-lead">之前为了方便一直用基于文件的 SQLite，但它不支持外键约束。本文用 Docker 起 PostgreSQL，并在工程里改接 FluentPostgreSQL，验证外键约束真正生效。</p>
+<h2>为什么换库</h2>
+<p>之前图方便一直用的 SQLite 是基于文件的数据库系统，功能上有所缺失。之前做父子关系试验时就发现 SQLite 不支持外键约束，加了和没加一样。所以决定切换到 PostgreSQL 来验证。</p>
+<h2>用 Docker 起 PostgreSQL</h2>
+<p>我们用 Docker 来部署 PostgreSQL。Docker 的安装请自行参考官网最新文档。在 Shell 中跑下面这段命令即可布置好 PostgreSQL 环境：</p>
+<pre><code>docker run --name postgres -e POSTGRES_DB=vapor \
+  -e POSTGRES_USER=vapor -e POSTGRES_PASSWORD=password \
+  -p 5432:5432 -d postgres</code></pre>
+<h3>在 macOS 上配置数据库</h3>
+<p>macOS 上也可以使用作者写好的脚本安装：</p>
+<pre><code>$ wget https://raw.githubusercontent.com/wangzhizhou/TILApp-BackEnd/master/database-config-mac.sh
+$ chmod u+x database-config-mac.sh
+$ ./database-config-mac.sh -i
+$ ./database-config-mac.sh -d</code></pre>
+<h3>国内 Docker 镜像加速</h3>
+<p>国内可使用 DaoCloud 加速。Linux 下执行：</p>
+<pre><code>curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io</code></pre>
+<p>该脚本会把 <code>--registry-mirror</code> 写入 Docker 配置文件 <code>/etc/docker/daemon.json</code>，适用于 Ubuntu 14.04、Debian、CentOS 6/7、Fedora、Arch Linux、openSUSE Leap 42.1 等。</p>
+<div class="callout">macOS 上：右键点击顶部状态栏的 Docker 图标 → Preferences → Daemon 标签下的 Registry mirrors 列表里加入 <code>http://f1361db2.m.daocloud.io</code>，点击 Apply &amp; Restart 生效。Windows 上：右键状态栏 Docker 图标，在 Docker Daemon 标签页的 json 里把该地址加入 <code>"registry-mirrors"</code> 数组，点击 Apply。</div>
+<h2>工程中切换 FluentPostgreSQL</h2>
+<p>先在 <code>Package.swift</code> 加入 <code>fluent-postgresql</code> 包：</p>
+<pre><code>// PostgreSQL
+.package(url: "https://github.com/vapor/fluent-postgresql", from: "1.0.0")
+...
+.target(name: "App", dependencies: ["FluentPostgreSQL", "Vapor"]),</code></pre>
+<p>在 <code>configure.swift</code> 中注册 <code>FluentPostgreSQLProvider</code>，并配置数据库连接与迁移：</p>
+<pre><code>import FluentPostgreSQL
+...
+try services.register(FluentPostgreSQLProvider())
+...
+/// Register the configured SQLite database to the database config.
+let databaseConfig = PostgreSQLDatabaseConfig(hostname: "localhost",
+                                              port: 5432,
+                                              username: "vapor",
+                                              database: "vapor",
+                                              password: "password")
+let database = PostgreSQLDatabase(config: databaseConfig)
+
+var databases = DatabasesConfig()
+databases.add(database: database, as: .psql)
+services.register(databases)
+
+/// Configure migrations
+var migrations = MigrationConfig()
+migrations.add(model: User.self, database: .psql)
+migrations.add(model: Acronym.self, database: .psql)
+services.register(migrations)</code></pre>
+<p>在 <code>Acronym</code> 模型里改用 PostgreSQL 相关协议，并在迁移中加上指向 <code>User.id</code> 的外键约束：</p>
+<pre><code>import FluentPostgreSQL
+...
+extension Acronym: PostgreSQLModel {}
+...
+extension Acronym: Migration {
+    static func prepare(on connection: PostgreSQLConnection) -> Future&lt;Void&gt; {
+
+        // 创建 Acronym 在数据库中的表
+        return Database.create(self, on: connection) { (builder) in
+
+            // 添加 Acronym 所有属性到表中
+            try addProperties(to: builder)
+
+            // 这一句添加了 Acronym.userID 到 User.id 的外键约束
+            builder.reference(from: \.userID, to: \User.id)
+        }
+    }
+}
+...</code></pre>
+<pre><code>import FluentPostgreSQL
+...
+extension User: PostgreSQLUUIDModel {}</code></pre>
+<p>运行程序并验证外键约束是否生效。从错误信息可以看出，PostgreSQL 确实支持外键约束。</p>
+<h2>什么是外键约束</h2>
+<p>外键必须是另一个表中的主键。外键的用途是确保数据的完整性：因为我们在 <code>Acronym</code> 中定义了外键 <code>userID</code> 指向 <code>User</code> 表的主键 <code>id</code>，所以要创建一个 <code>Acronym</code> 时，它对应的 <code>User</code> 必须已经存在才能创建成功；要删除一个 <code>User</code> 时，需要先把该 <code>User</code> 下的所有 <code>Acronym</code> 删掉，才能删除该 <code>User</code>。</p>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

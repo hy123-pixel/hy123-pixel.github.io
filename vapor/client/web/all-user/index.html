@@ -1,0 +1,62 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 实现「全部用户」列表页，并用 base.leaf 在所有页面加上查看入口。"><title>全部用户页 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-all-user.svg" alt="全部用户页 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>全部用户页</h1><p class="article-lead">本章做一个「所有用户」的列表页，并在每个页面的导航栏里加上访问入口，方便随时查看。</p>
+
+<h2>创建列表页模板</h2>
+<p>新建 <code>Resources/Views/allUsers.leaf</code>，用表格展示用户名与昵称，每个用户名链接到该用户的主页。</p>
+<pre><code>#set("content") {
+    &lt;h1&gt;All Users&lt;/h1&gt;
+    #if(count(users) &gt; 0) {
+    &lt;table class="table table-borderd table-hover"&gt;
+        &lt;thead class="thead-light"&gt;
+            &lt;tr&gt;
+                &lt;th&gt;
+                    Username
+                &lt;/th&gt;
+                &lt;th&gt;
+                    Name
+                &lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            #for(user in users) {
+            &lt;tr&gt;
+                &lt;td&gt;
+                    &lt;a href="/users/#(user.id)"&gt;#(user.username)&lt;/a&gt;
+                &lt;/td&gt;
+                &lt;td&gt;
+                    #(user.name)
+                &lt;/td&gt;
+            &lt;/tr&gt;
+            }
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+    } else {
+    &lt;h2&gt;There aren't any uses yet!&lt;/h2&gt;
+    }
+}
+
+#embed("base")</code></pre>
+
+<h2>控制器里加访问逻辑</h2>
+<p>在 <code>WebsiteController.swift</code> 定义上下文 <code>AllUsersContext</code>（注意这里 <code>users</code> 是已经解析好的 <code>[User]</code> 数组），注册 <code>GET /users</code> 路由并渲染模板。</p>
+<pre><code>struct AllUsersContext: Encodable {
+    let title: String
+    let users: [User]
+}
+...
+    router.get("users", use: allUsersHandler)
+...
+    func allUsersHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return User.query(on: req).all()
+            .flatMap(to: View.self) { users in
+                let context = AllUsersContext(title: "All Users", users: users)
+                return try req.view().render("allUsers", context)
+        }
+    }</code></pre>
+
+<h2>在导航栏加入口</h2>
+<p>因为所有页面都能进入该列表，所以把入口加在 <code>base.leaf</code> 的导航列表中，并用 <code>#if(title=="All Users"){active}</code> 在访问本页时高亮。</p>
+<pre><code>&lt;li class="nav-item #if(title=="All Users"){active}"&gt;
+    &lt;a href="/users" class="nav-link"&gt;All Users&lt;/a&gt;
+&lt;/li&gt;</code></pre>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

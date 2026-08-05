@@ -1,0 +1,32 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="本文介绍如何把 Vapor 3 项目部署到自己购买的 Ubuntu 云服务器：安装 Docker 与数据库容器，用 nginx 做端口转发并配置域名解析。"><title>部署到私有服务器 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-deploy-private.svg" alt="部署到私有服务器 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>部署到私有服务器</h1><p class="article-lead">不想依赖第三方平台？本文教你在自己的 Ubuntu 云服务器上用 Docker 跑起 PostgreSQL，再用 nginx 做端口转发，把 Vapor 3 应用部署上线。</p>
+
+<h2>部署到自己的云服务器</h2>
+<p>Vapor Cloud 是很方便部署的，但是随时可能会变成收费的。假如你自己已经投资入手了云服务器，完全可以把项目放在自己的服务器上运行。</p>
+<p>首先在 ubuntu 上安装 Docker，之后用 docker 安装数据库容器，原理与前述一致，因为数据库只在服务器上本地使用，所以不需要暴露给外面使用：</p>
+<pre><code>$ sudo apt-get update
+$ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+$ sudo apt-key fingerprint 0EBFCD88
+$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+$ sudo apt-get update
+$ sudo apt-get install docker-ce
+$ curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s  http://f1361db2.m.daocloud.io
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart docker
+$ docker run --name postgres \
+-e POSTGRES_DB=vapor \
+-e POSTGRES_USER=vapor \
+-e POSTGRES_PASSWORD=password \
+-p 5432:5432 \
+-d postgres
+$ docker run --name postgres-test \
+-e POSTGRES_DB=vapor-test \
+-e POSTGRES_USER=vapor \
+-e POSTGRES_PASSWORD=password \
+-p 5433:5432 \
+-d postgres
+$ vapor run --hostname=0.0.0.0 --port=8080</code></pre>
+<p>云服务器需要开端口权限，域名需要配置解析，使用 nginx 进行端口转发。</p>
+<div class="callout">最终完成 API 的项目地址：<a href="https://github.com/wangzhizhou/TILApp-BackEnd/releases/tag/1.0">https://github.com/wangzhizhou/TILApp-BackEnd/releases/tag/1.0</a></div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

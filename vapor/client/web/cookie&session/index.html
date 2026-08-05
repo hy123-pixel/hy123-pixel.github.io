@@ -1,0 +1,306 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Vapor 3 中用 SessionMiddleware 实现登录与会话认证，并用 Cookie 与 CSRF Token 保护 Web 应用。"><title>Cookie 与 Session · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-cookieandsession.svg" alt="Cookie 与 Session 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 14 分钟</time></div><h1>Cookie 与 Session</h1><p class="article-lead">网站要记住「你是谁」，靠的就是 Cookie 和 Session。本文用 Vapor 3 的 SessionMiddleware 实现登录与会话认证，并用 Cookie 确认提示和 CSRF Token 加固 Web 应用。</p>
+<h2>一、Cookie 与 Session 是什么</h2>
+<p>Cookie 是服务器应用发送给浏览器、存放在用户计算机上的小块信息。因为浏览器在请求网页时不能设置自定义头部，所以访问服务端应用时，浏览器会在请求里带上服务端之前发给它的 Cookie。</p>
+<p>Session 能在多次不同的请求之间保存状态信息。在用户验证过程中，服务端会给用户创建一个会话，并用一个唯一 ID 来标识它；发送给用户的 Cookie 里也包含这个标识会话的唯一 ID。当用户再次请求时，服务端通过 Cookie 里的 ID 就能认出是哪个会话。</p>
+<p>在 Vapor 中，使用中间件来管理会话。先在 <code>configure.swift</code> 启用 <code>SessionsMiddleware</code>，并配置一个键值存储服务：</p>
+<pre><code>...
+middlewares.use(SessionsMiddleware.self)
+...
+config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)</code></pre>
+<p>再让 <code>User</code> 遵循密码验证与会话验证两个协议：</p>
+<pre><code>...
+extension User: PasswordAuthenticatable {}
+extension User: SessionAuthenticatable {}</code></pre>
+<h2>二、登录页面</h2>
+<p>要实现登录，需要提供两个 API：一个显示登录页，一个接收登录信息。先定义登录页的上下文与 POST 数据：</p>
+<pre><code>struct LoginContext: Encodable {
+    let title = "Log In"
+    let loginError: Bool
+
+    init(loginError: Bool = false) {
+        self.loginError = loginError
+    }
+}
+
+...
+
+    func loginHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        let context: LoginContext
+
+        if req.query[Bool.self, at: "error"] != nil {
+            context = LoginContext(loginError: true)
+        } else {
+            context = LoginContext()
+        }
+
+        return try req.view().render("login", context)
+    }
+    ...</code></pre>
+<p>登录页模板 <code>login.leaf</code>（这里以纯文本片段展示核心结构）：</p>
+<pre><code>#set("content") {
+
+&lt;h1&gt;#(title)&lt;/h1&gt;
+
+#if(loginError) {
+    &lt;div class="alert alert-danger" role="alert"&gt;
+        User authentication error. Either your username or password
+        was invalid.
+    &lt;/div&gt;
+}
+&lt;form method="post"&gt;
+    &lt;div class="form-group"&gt;
+        &lt;label for="username"&gt;Username&lt;/label&gt;
+        &lt;input type="text" name="username" class="form-control"
+        id="username"/&gt;
+    &lt;/div&gt;
+    &lt;div class="form-group"&gt;
+        &lt;label for="password"&gt;Password&lt;/label&gt;
+        &lt;input type="password" name="password" class="form-control"
+        id="password"/&gt;
+    &lt;/div&gt;
+    &lt;button type="submit" class="btn btn-primary"&gt;Log In&lt;/button&gt;
+&lt;/form&gt;
+}
+#embed("base")</code></pre>
+<p>接收登录提交的处理器：用 <code>User.authenticate(...)</code> 校验账号密码，失败就重定向回登录页并带上 <code>error</code>；成功则 <code>req.authenticateSession(user)</code> 把用户写进会话：</p>
+<pre><code>...
+import Authentication
+...
+struct LoginPostData: Content {
+    let username: String
+    let password: String
+}
+...
+    func boot(router: Router) throws {
+        ...
+        router.get("login", use: loginHandler)
+        router.post(LoginPostData.self, at: "login", use: loginPostHandler)
+    }
+    func loginPostHandler(_ req: Request, userData: LoginPostData) throws -> Future&lt;Response&gt; {
+        return User.authenticate(username: userData.username, password: userData.password, using: BCryptDigest(), on: req).map(to: Response.self) {
+            user in
+
+            guard let user = user else {
+                return req.redirect(to: "/login?error")
+            }
+
+            try req.authenticateSession(user)
+            return req.redirect(to: "/")
+        }
+    }</code></pre>
+<h2>三、用会话认证保护 API</h2>
+<p>登录页建好后，就要通过认证用户身份来保护 API，使用的是会话认证中间件：</p>
+<pre><code>    func boot(router: Router) throws {
+        let authSessionRoutes = router.grouped(User.authSessionsMiddleware())
+        authSessionRoutes.get(use: indexHandler)
+        authSessionRoutes.get("acronyms", Acronym.parameter, use: acronymHandler)
+        authSessionRoutes.get("users", User.parameter, use: userHandler)
+        authSessionRoutes.get("users", use: allUsersHandler)
+        authSessionRoutes.get("categories", use: allCategoriesHandler)
+        authSessionRoutes.get("categories", Category.parameter, use: categoryHandler)
+        authSessionRoutes.get("login", use: loginHandler)
+
+        let protectedGroup = authSessionRoutes.grouped(RedirectMiddleware&lt;User&gt;(path: "/login"))
+        protectedGroup.get("acronyms", "create", use: createAcronymHandler)
+        protectedGroup.get("acronyms", Acronym.parameter, "edit", use: editAcronymHandler)
+        protectedGroup.post("acronyms", Acronym.parameter, "edit",  use: editAcronymPostHandler)
+        protectedGroup.post("acronyms", Acronym.parameter, "delete", use: deleteAcronymHandler)
+        protectedGroup.post(CreateAcronymData.self, at: "acronyms", "create", use: createAcronymPostHandler)
+
+        router.post(LoginPostData.self, at: "login", use: loginPostHandler)
+    }</code></pre>
+<p>这里用 <code>User.authSessionsMiddleware()</code> 给一组路由加上会话认证；再用 <code>RedirectMiddleware&lt;User&gt;(path: "/login")</code> 把未登录用户重定向到登录页。</p>
+<h2>四、更新网站以利用已登录用户</h2>
+<p>有了认证信息，就能从会话里拿到当前用户的 ID，于是创建/编辑缩略词时不必再让用户手动选自己：</p>
+<pre><code>struct CreateAcronymData: Content {
+    let short: String
+    let long: String
+    let categories: [String]?
+}
+...
+    func createAcronymPostHandler(_ req: Request, data: CreateAcronymData) throws -> Future&lt;Response&gt; {
+
+        let user = try req.requireAuthenticated(User.self)
+        let acronym = try Acronym(short: data.short, long: data.long, userID: user.requireID())
+
+        ...
+    }
+
+    func editAcronymPostHandler(_ req: Request) throws -> Future&lt;Response&gt; {
+    return try flatMap(to: Response.self,
+                        req.parameters.next(Acronym.self),
+                        req.content.decode(CreateAcronymData.self)
+    ) { acronym, data in
+        ...
+        let user = try req.requireAuthenticated(User.self)
+        acronym.userID = try user.requireID()
+        ...
+    }</code></pre>
+<p>这样一来，<code>createAcronym.leaf</code> 里让用户选择创建者的下拉框就可以删掉。因为创建和编辑共用同一份模板，只需要改一下位置即可。对应的上下文也简化了：</p>
+<pre><code>struct CreateAcronymContext: Encodable {
+    let title = "Create An Acronym"
+}
+struct EditAcronymContext: Encodable {
+    let title = "Edit Acronym"
+    let acronym: Acronym
+    let editing = true
+    let categories: Future&lt;[Category]&gt;
+}
+    ...
+    func createAcronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        let context = CreateAcronymContext()
+        return try req.view().render("createAcronym", context)
+    }
+    ...
+    func editAcronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return try req.parameters.next(Acronym.self)
+            .flatMap(to: View.self) { acronym in
+                let categories = try acronym.categories.query(on: req).all()
+                let context = EditAcronymContext(acronym: acronym,
+                                                    categories: categories)
+                return try req.view().render("createAcronym", context)
+        }
+    }
+    ...</code></pre>
+<h2>五、退出登录</h2>
+<p>能登录，自然也要能退出。加一个 <code>logoutHandler</code>，调用 <code>req.unauthenticate</code> 清除会话即可：</p>
+<pre><code>...
+    func boot(router: Router) throws {
+        ....
+        authSessionRoutes.post("logout", use: logoutHandler)
+    ...
+    func logoutHandler(_ req: Request) throws -> Response {
+        try req.unauthenticate(User.self)
+        return req.redirect(to: "/")
+    }</code></pre>
+<p>导航栏 <code>base.leaf</code> 里，已登录时才显示退出按钮：</p>
+<pre><code>        ...
+        &lt;/ul&gt;
+        #if(userLoggedIn) {
+            &lt;form class="form-inline" action="/logout" method="POST"&gt;
+            &lt;input class="nav-link btn btn-link" type="submit"
+            value="Log out"&gt;
+            &lt;/form&gt;
+        }
+    &lt;/div&gt;
+&lt;/nav&gt;
+...</code></pre>
+<p>首页上下文加入 <code>userLoggedIn</code>，由 <code>req.isAuthenticated(User.self)</code> 判断：</p>
+<pre><code>struct IndexContext: Encodable {
+    let title: String
+    let acronyms: [Acronym]?
+    let userLoggedIn: Bool
+}
+...
+    func indexHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return Acronym.query(on: req).all()
+            .flatMap(to: View.self) { acronyms in
+                let userLoggedIn = try req.isAuthenticated(User.self)
+                let acronymsData = acronyms.isEmpty ? nil : acronyms
+                let context = IndexContext(title: "Homepage", acronyms: acronymsData, userLoggedIn: userLoggedIn)
+                   return try req.view().render("index", context)
+        }
+    }</code></pre>
+<h2>六、Cookie</h2>
+<p>Web 上经常用到 Cookie。第一次访问网站时，通常会提示是否允许设置 Cookie，需要用户确认。我们已经用 Cookie 做用户认证，但有时还需要自己设置或读取 Cookie。下面实现一个让用户确认使用 Cookie 的提示。</p>
+<p>在 <code>base.leaf</code> 里，根据 <code>showCookieMessage</code> 显示底部提示条，并引入相关脚本：</p>
+<pre><code>...
+        &lt;link rel="stylesheet" href="/styles/style.css"&gt;
+        &lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+...
+        #if(showCookieMessage) {
+            &lt;footer id="cookie-footer"&gt;
+                &lt;div id="cookieMessage" class="container"&gt;
+                    &lt;span class="muted"&gt;
+                        This site uses cookies! To accept this, click
+                        &lt;a href="#" onclick="cookiesConfirmed()"&gt;OK&lt;/a&gt;
+                    &lt;/span&gt;
+                &lt;/div&gt;
+            &lt;/footer&gt;
+            &lt;script src="/scripts/cookies.js"&gt;&lt;/script&gt;
+        }
+        ...
+        &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"&gt;&lt;/script&gt;
+        ...
+    &lt;/body&gt;</code></pre>
+<p>样式 <code>Public/styles/style.css</code>：</p>
+<pre><code>#cookie-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    background-color: #f5f5f5;
+}</code></pre>
+<p>脚本 <code>Public/scripts/cookies.js</code>，点击确认后写入一个有效期一年的 Cookie：</p>
+<pre><code>function cookiesConfirmed() {
+    $("#cookie-footer").hide();
+    var d = new Date();
+    d.setTime(d.getTime() + (365*24*60*60*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = "cookies-accepted=true;" + expires;
+}</code></pre>
+<p>控制器里通过 <code>req.http.cookies</code> 判断用户是否已经确认过，从而决定是否显示提示：</p>
+<pre><code>struct IndexContext: Encodable {
+    let title: String
+    let acronyms: [Acronym]?
+    let userLoggedIn: Bool
+    let showCookieMessage: Bool
+}
+...
+
+    func indexHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return Acronym.query(on: req).all()
+            .flatMap(to: View.self) { acronyms in
+                let userLoggedIn = try req.isAuthenticated(User.self)
+                let acronymsData = acronyms.isEmpty ? nil : acronyms
+                let showCookieMessage = req.http.cookies["cookies-accepted"] == nil
+
+                let context = IndexContext(title: "Homepage",
+                                           acronyms: acronymsData,
+                                           userLoggedIn: userLoggedIn,
+                                           showCookieMessage: showCookieMessage)
+
+                return try req.view().render("index", context)
+        }
+    }</code></pre>
+<h2>七、Session 与 CSRF 防护</h2>
+<p>除了用 Cookie 做用户认证，还可以用会话。会话还有多种适用场景，其中之一就是 CSRF（跨站请求伪造）防护：攻击者伪装成一名用户发起破坏性请求。我们可以在表单里加入 CSRF Token，当 Web 应用收到请求时，验证它是否与服务端发出去的 Token 匹配，再决定是否处理。</p>
+<p>生成 Token 并存入会话，创建缩略词时一并发给页面：</p>
+<pre><code>struct CreateAcronymContext: Encodable {
+    let title = "Create An Acronym"
+    let csrfToken: String
+}
+struct CreateAcronymData: Content {
+    let short: String
+    let long: String
+    let categories: [String]?
+    let csrfToken: String
+}
+...
+    func createAcronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        let token = try CryptoRandom().generateData(count: 16).base64EncodedString()
+        let context = CreateAcronymContext(csrfToken: token)
+        try req.session()["CSRF_TOKEN"] = token
+        return try req.view().render("createAcronym", context)
+    }
+    ...
+    func createAcronymPostHandler(_ req: Request, data: CreateAcronymData) throws -> Future&lt;Response&gt; {
+
+        let expectedToken = try req.session()["CSRF_TOKEN"]
+        try req.session()["CSRF_TOKEN"] = nil
+        guard expectedToken == data.csrfToken else {
+            throw Abort(.badRequest)
+        }
+
+        ...
+    }</code></pre>
+<p>模板 <code>createAcronym.leaf</code> 里用一个隐藏域把 Token 带回去：</p>
+<pre><code>...
+    &lt;form method = "post"&gt;
+        #if(csrfToken) {
+            &lt;input type="hidden" name="csrfToken" value="#(csrfToken)"&gt;
+        }
+...</code></pre>
+<div class="callout"><strong>安全提示：</strong>服务端比对完 Token 后立刻把它清空（<code>req.session()["CSRF_TOKEN"] = nil</code>），这样同一个 Token 不能重复使用，能有效抵御重放攻击。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

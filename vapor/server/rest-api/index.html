@@ -1,0 +1,30 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 REST 风格把增删改查映射成统一的 URL 与 HTTP 方法，让客户端对接更省心。"><title>构建 REST API · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-rest-api.svg" alt="构建 REST API 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>构建 REST API</h1><p class="article-lead">用 REST 风格把“增删改查”映射成统一的 URL 与 HTTP 方法，客户端对接起来更省心、也更规范。</p>
+<h2>什么是 REST</h2>
+<ul>
+<li>REST 是 Representational State Transfer 的缩写，是一种面向分布式超媒体系统的架构风格。</li>
+<li>和其它架构风格一样，它有自己的规则与约束。如果一个 API 服务满足 REST 架构规范，就可以被称为 <strong>RESTful API</strong>。</li>
+<li>想深入了解，可参考 <a href="https://restfulapi.net/">RESTful API 教程</a>。</li>
+</ul>
+<p>遵循 REST 风格的 API 可以和数据库的 CRUD（创建、查询、更新、删除）对应起来，用一种统一的模式操作资源，从而简化客户端的构建过程。</p>
+<h2>CRUD 与 HTTP 方法的映射</h2>
+<p>以“首字母缩写（acronym）”相关 API 为例，遵循 REST 风格可以这样定义：</p>
+<h3>创建（Create）</h3>
+<ul>
+<li><code>POST /api/acronyms</code>：创建一个首字母缩写（源站示例里用了 <code>/api/acronyms/1</code> 表示创建 ID 为 1 的缩写，实践中更常见的是由服务端生成 ID，直接 <code>POST /api/acronyms</code>）。</li>
+</ul>
+<h3>查询（Read）</h3>
+<ul>
+<li><code>GET /api/acronyms/</code>：获取全部首字母缩写</li>
+<li><code>GET /api/acronyms/1</code>：获取 ID 为 1 的首字母缩写</li>
+</ul>
+<h3>更新（Update）</h3>
+<ul>
+<li><code>PUT /api/acronyms/1</code>：用新内容更新 ID 为 1 的首字母缩写</li>
+</ul>
+<h3>删除（Delete）</h3>
+<ul>
+<li><code>DELETE /api/acronyms/1</code>：删除 ID 为 1 的首字母缩写</li>
+</ul>
+<p>通过接口定义就能清楚知道它的功能，接口也比较规范和整洁，一般不需要注释就能理解。下面用一张表汇总：</p>
+<div class="table-wrap"><table class="model-table"><thead><tr><th>操作</th><th>HTTP 方法</th><th>URL 示例</th><th>含义</th></tr></thead><tbody><tr><td>创建</td><td>POST</td><td><code>/api/acronyms</code></td><td>新建一个首字母缩写</td></tr><tr><td>查询全部</td><td>GET</td><td><code>/api/acronyms/</code></td><td>获取全部首字母缩写</td></tr><tr><td>查询单个</td><td>GET</td><td><code>/api/acronyms/1</code></td><td>获取 ID 为 1 的缩写</td></tr><tr><td>更新</td><td>PUT</td><td><code>/api/acronyms/1</code></td><td>更新 ID 为 1 的缩写</td></tr><tr><td>删除</td><td>DELETE</td><td><code>/api/acronyms/1</code></td><td>删除 ID 为 1 的缩写</td></tr></tbody></table></div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

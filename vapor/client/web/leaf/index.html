@@ -1,0 +1,155 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 的 Leaf 模板引擎渲染动态 HTML 页面，掌握参数注入、上下文结构体与列表遍历等常用语法。"><title>Leaf 模板引擎 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-leaf.svg" alt="Leaf 模板引擎 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 9 分钟</time></div><h1>Leaf 模板引擎</h1><p class="article-lead">接口返回 JSON 是给前端 App 用的；但要做一个人人能直接打开的网站，得返回 HTML。Leaf 就是 Vapor 自带的模板语言：把变量塞进页面，动态生成最终 HTML。</p>
+<h2>一、什么是 Leaf</h2>
+<p>Leaf 是 Vapor 框架自带的模板语言。模板语言的作用是：把数据传给页面，页面再根据这些数据动态生成最终的 HTML。它还能帮我们省代码——写页面展示逻辑时可以塞进各种参数变量，不同页面之间也能复用写好的代码块。想统一改样式时，往往只改一处就能影响所有页面。Leaf 还支持在一个模板里嵌套另一个模板。</p>
+<p>我们会基于之前写好的后端 API 项目，直接在其上开发 Web 页面。先在 <code>Package.swift</code> 里加上 Leaf 依赖：</p>
+<pre><code>...
+.package(url: "https://github.com/vapor/leaf.git", from: "3.0.1")
+...
+.target(name: "App", dependencies: ["FluentPostgreSQL", "Vapor", "Leaf"]),
+</code></pre>
+<p>Leaf 默认使用 <code>Resources/Views</code> 目录来存放模板，所以我们新建一个同名目录：</p>
+<pre><code>mkdir -p Resources/Views</code></pre>
+<p>接着新建一个专门返回 Web 页面的控制器 <code>WebsiteController.swift</code>：</p>
+<pre><code>import Vapor
+import Leaf
+
+struct WebsiteController: RouteCollection {
+
+    func boot(router: Router) throws {
+        router.get(use: indexHandler)
+    }
+
+    func indexHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return try req.view().render("index")
+    }
+}</code></pre>
+<p>在 <code>routes.swift</code> 里注册这个控制器让它生效：</p>
+<pre><code>...
+let websiteController = WebsiteController()
+try router.register(collection: websiteController)
+...</code></pre>
+<p>还要把 Leaf 作为一种「视图渲染服务」配置好，在 <code>configure.swift</code> 中：</p>
+<pre><code>try services.register(LeafProvider())
+config.prefer(LeafRenderer.self, for: ViewRenderer.self)</code></pre>
+<h2>二、注入参数</h2>
+<p>Leaf 用 <code>#(arg)</code> 的方式把参数注入页面模板。Vapor 里大量使用了 <code>Codable</code> 协议，Leaf 也不例外。</p>
+<p>在 <code>index.leaf</code> 里用 <code>#(title)</code> 占位：</p>
+<pre><code>...
+&lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+...</code></pre>
+<p>在控制器里定义一个遵循 <code>Encodable</code> 的上下文结构体 <code>IndexContext</code>，把数据带进去：</p>
+<pre><code>import Vapor
+import Leaf
+
+struct IndexContext: Encodable {
+    let title: String
+}
+
+struct WebsiteController: RouteCollection {
+
+    func boot(router: Router) throws {
+        router.get(use: indexHandler)
+    }
+
+    func indexHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        let context = IndexContext(title: "Homepage")
+        return try req.view().render("index", context)
+    }
+}</code></pre>
+<h2>三、展示缩略语列表</h2>
+<p>光有一个标题不够，接下来让首页把数据库里的缩略词（Acronym）列出来。模板用 <code>#if</code> / <code>#for</code> 做条件与循环：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="en"&gt;
+    &lt;head&gt;
+        &lt;meta charset="utf-8" /&gt;
+        &lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Acronyms&lt;/h1&gt;
+        #if(acronyms) {
+        &lt;table&gt;
+            &lt;thead&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;Short&lt;/th&gt;
+                    &lt;th&gt;Long&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                #for(acronym in acronyms) {
+                &lt;tr&gt;
+                    &lt;td&gt;#(acronym.short)&lt;/td&gt;
+                    &lt;td&gt;#(acronym.long)&lt;/td&gt;
+                }
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+        } else {
+            &lt;h2&gt;There aren't any acronyms yet!&lt;/h2&gt;
+        }
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>控制器里先用 <code>Acronym.query(on:)</code> 查出全部，再用 <code>flatMap(to:)</code> 在拿到结果后渲染页面。注意空数组时把 <code>acronyms</code> 置为 <code>nil</code>，模板里 <code>#if(acronyms)</code> 就会走「还没有数据」的分支：</p>
+<pre><code>import Vapor
+import Leaf
+
+struct IndexContext: Encodable {
+    let title: String
+    let acronyms: [Acronym]?
+}
+
+struct WebsiteController: RouteCollection {
+
+    func boot(router: Router) throws {
+        router.get(use: indexHandler)
+    }
+
+    func indexHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return Acronym.query(on: req).all()
+            .flatMap(to: View.self) { acronyms in
+                let acronymsData = acronyms.isEmpty ? nil : acronyms
+                let context = IndexContext(title: "Homepage", acronyms: acronymsData)
+                   return try req.view().render("index", context)
+        }
+    }
+}</code></pre>
+<h2>四、跳转到 Acronym 详情</h2>
+<p>列表里的每一项都该能点进详情页。在列表模板里给标题包上链接：</p>
+<pre><code>...
+&lt;td&gt;&lt;a href="/acronyms/#(acronym.id)"&gt;#(acronym.short)&lt;/a&gt;&lt;/td&gt;
+...</code></pre>
+<p>详情页模板 <code>acronyms.leaf</code> 显示缩略词及其创建者：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="en"&gt;
+    &lt;head&gt;
+        &lt;meta charset="utf-8" /&gt;
+        &lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;#(acronym.short)&lt;/h1&gt;
+        &lt;h2&gt;#(acronym.long)&lt;/h2&gt;
+        &lt;p&gt;Created by #(user.name)&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>详情控制器用 <code>req.parameters.next(Acronym.self)</code> 取出路由里的参数，再链式 <code>flatMap</code> 查出关联的用户，最后渲染：</p>
+<pre><code>...
+struct AcronymContext: Encodable {
+    let title: String
+    let acronym: Acronym
+    let user: User
+}
+...
+        router.get("acronyms", Acronym.parameter, use: acronymHandler)
+...
+    func acronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return try req.parameters.next(Acronym.self)
+            .flatMap(to: View.self) { acronym in
+                return acronym.user.get(on: req)
+                    .flatMap(to: View.self) { user in
+                        let context = AcronymContext(title: acronym.short, acronym: acronym, user: user)
+                        return try req.view().render("acronym", context)
+                }
+        }
+    }</code></pre>
+<div class="callout"><strong>小提示：</strong>Vapor 3 里大量使用 <code>Future</code> 和 <code>flatMap(to:)</code> 处理异步。模板渲染 <code>req.view().render(...)</code> 返回的是 <code>Future&lt;View&gt;</code>，所以控制器方法也要返回 <code>Future&lt;View&gt;</code>。这是 Vapor 3 与 Vapor 4 最明显的区别之一。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

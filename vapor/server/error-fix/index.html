@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="本文汇总 Vapor 3 开发过程中常见的排错手段：重新生成 Xcode 工程、清理编译产物，以及到 Discord 频道求助。"><title>常见错误排查 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-error-fix.svg" alt="常见错误排查 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>常见错误排查</h1><p class="article-lead">遇到诡异编译错误、找不到文件或配置错乱？本文给出几条实用的 Vapor 排错与清理命令，必要时再去社区求助。</p>
+
+<h2>排错</h2>
+<p>使用 Xcode 开发时，如果找不到文件或者项目配置出错时尝试重新生成 Xcode 项目：</p>
+<pre><code>vapor clean --swiftpm && vapor xcode </code></pre>
+<p>完全找不到错误原因时尝试全部清理重新编译运行：</p>
+<ol>
+<li>Xcode 中使用 <code>Cmd</code>+<code>Shift</code>+<code>K</code> 清空编译产物</li>
+<li>清空编译中间产物：
+<pre><code>vapor clean</code></pre>
+</li>
+<li>清空所有产物：
+<pre><code>vapor clean --update --global --swiftpm</code></pre>
+或者
+<pre><code>vapor clean -u -g -s</code></pre>
+</li>
+</ol>
+
+<h2>求助他人</h2>
+<p>Vapor 在 <a href="https://discord.gg/vapor">Discord Channel</a> 上有频道可以求助。但 Discord 在中国完全被墙掉了，这也对于 Vapor 的流行起到了一定的阻碍作用。如果有访问国际互联网的手段，翻墙后可以下载 <a href="https://discord.onl/download/">Discord</a>，并进入频道。</p>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

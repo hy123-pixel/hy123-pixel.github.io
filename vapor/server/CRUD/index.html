@@ -1,0 +1,52 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 RESTful 风格在 Vapor 3 中实现对 Acronym 的增删改查（CRUD）接口，含完整的 Vapor 3 路由代码。"><title>数据库 CRUD 操作 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-CRUD.svg" alt="数据库 CRUD 操作 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 5 分钟</time></div><h1>数据库 CRUD 操作</h1><p class="article-lead">RESTful API 提供了一套用 URL + HTTP 方法调用 CRUD 的标准方式。本文用 Vapor 3 代码实现 Acronym 的增、查、改、删四个接口。</p>
+
+<p>RESTful APIs 提供了一种在应用中调用 CRUD 函数的方式。通常我们有一个 URL 对应数据模型，在这个 URL 基础上配合 HTTP 不同的请求 Method，就可以执行相应的 CRUD 操作，例如：</p>
+<ul>
+<li>POST <code>https://localhost:8080/api/acronyms</code> 创建一个新的缩略语</li>
+<li>GET <code>https://localhost:8080/api/acronyms</code> 获取所有的缩略语数据</li>
+<li>GET <code>https://localhost:8080/api/acronyms/&lt;ID&gt;</code> 获取指定 ID 的缩略语</li>
+<li>PUT <code>https://localhost:8080/api/acronyms/&lt;ID&gt;</code> 更新指定 ID 的缩略语</li>
+<li>DELETE <code>https://localhost:8080/api/acronyms/&lt;ID&gt;</code> 删除指定 ID 的缩略语</li>
+</ul>
+
+<h2>Create</h2>
+<p>POST <code>https://localhost:8080/api/acronyms</code> 创建一个新的缩略语</p>
+<pre><code>router.post("api", "acronyms") { (req) -&gt; Future&lt;Acronym&gt; in
+    return try req.content.decode(Acronym.self)
+        .flatMap(to: Acronym.self) { (acronym) in
+            return acronym.save(on: req)
+    }
+}</code></pre>
+
+<h2>Retrieve</h2>
+<p>GET <code>https://localhost:8080/api/acronyms</code> 获取所有的缩略语数据</p>
+<pre><code>router.get("api", "acronyms") { (req) -&gt; Future&lt;[Acronym]&gt; in
+    return Acronym.query(on: req).all()
+}</code></pre>
+<p>GET <code>https://localhost:8080/api/acronyms/&lt;ID&gt;</code> 获取指定 ID 的缩略语，需要数据模型遵循 <code>Parameter</code> 协议：</p>
+<pre><code>// 使可以作为请求参数
+extension Acronym: Parameter {}</code></pre>
+<pre><code>router.get("api", "acronyms", Acronym.parameter) { (req) -&gt; Future&lt;Acronym&gt; in
+    return try req.parameters.next(Acronym.self)
+}</code></pre>
+
+<h2>Update</h2>
+<p>PUT <code>https://localhost:8080/api/acronyms/&lt;ID&gt;</code> 更新指定 ID 的缩略语</p>
+<pre><code>router.put("api","acronyms",Acronym.parameter) { (req) -&gt; Future&lt;Acronym&gt; in
+    return try flatMap(to: Acronym.self, req.parameters.next(Acronym.self), req.content.decode(Acronym.self)) { (acronym, updateAcronym) -&gt; Future&lt;Acronym&gt; in
+        acronym.short = updateAcronym.short
+        acronym.long = updateAcronym.long
+
+        return acronym.save(on: req)
+    }
+}</code></pre>
+
+<h2>Delete</h2>
+<p>DELETE <code>https://localhost:8080/api/acronyms/&lt;ID&gt;</code> 删除指定 ID 的缩略语</p>
+<pre><code>router.delete("api","acronyms", Acronym.parameter) { (req) -&gt; Future&lt;HTTPStatus&gt;in
+    return try req.parameters.next(Acronym.self)
+    .delete(on: req)
+    .transform(to: HTTPStatus.noContent)
+}</code></pre>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

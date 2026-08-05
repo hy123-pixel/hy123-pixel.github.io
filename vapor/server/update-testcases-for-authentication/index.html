@@ -1,0 +1,275 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="接口加了认证后，原有单元测试会失败。本文更新测试辅助方法与用例，让带 token 的请求也能被测试覆盖。"><title>为认证更新测试用例 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-update-testcases-for-authentication.svg" alt="为认证更新测试用例 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 7 分钟</time></div><h1>为认证更新测试用例</h1><p class="article-lead">接口加上认证后，原本的单元测试会全部失败。本文更新测试辅助方法和用例，让带 token 的请求也能被自动化测试覆盖。</p>
+<h2>先更新测试数据与辅助方法</h2>
+<p>创建用户时去掉明文密码相关断言，并让查询返回的是 <code>User.Public</code>：</p>
+<pre><code>func testUserCanBeSavedWithAPI() throws {
+    let user = User(name: usersName, username: usersUsername, password: "password")
+    ...
+}
+
+func testUsersCanBeRetrievedFromAPI() throws {
+    ...
+    // 发请求并获得响应
+    let users = try app.getResponse(to: usersURI, decodeTo: [User.Public].self)
+    ...
+}</code></pre>
+<p>给 <code>User</code> 增加一个测试用的 <code>create</code> 工厂方法，自动用 BCrypt 把密码哈希后再落库：</p>
+<pre><code>import Crypto
+extension User {
+    static func create(
+        name: String = "Luke",
+        username: String? = nil,
+        on connection: PostgreSQLConnection) throws -> User {
+        var createUsername: String
+        if let suppliedUsername = username {
+            createUsername = suppliedUsername
+        } else {
+            createUsername = UUID().uuidString
+        }
+        let password = try BCrypt.hash("password")
+
+        let user = User(name: name, username: createUsername, password: password)
+        return try user.save(on: connection).wait()
+    }
+}</code></pre>
+<h2>重置测试数据库</h2>
+<p>改完模型后，重置 docker 测试数据库让结构生效：</p>
+<pre><code>$ docker stop postgres-test
+$ docker rm postgres-test
+$ docker run --name postgres-test -e POSTGRES_DB=vapor-test \
+  -e POSTGRES_USER=vapor -e POSTGRES_PASSWORD=password \
+  -p 5433:5432 -d postgres</code></pre>
+<div class="callout">现在直接跑测试会崩溃，因为那些需要认证的 API 调用会失败：请求没有带 token，被 guard 中间件拦下了。</div>
+<h2>给测试辅助加上登录逻辑</h2>
+<p>在 <code>Application+testable.swift</code> 里扩展 <code>sendRequest</code> 与 <code>getResponse</code>，当传入 <code>loggedInRequest</code> 或 <code>loggedInUser</code> 时，先以 Basic 方式请求登录接口拿到 token，再把 <code>Bearer &lt;token&gt;</code> 写进请求头：</p>
+<pre><code>import Authentication
+extension Application {
+    ...
+    func sendRequest&lt;T&gt;(
+        to path: String,
+        method: HTTPMethod,
+        headers: HTTPHeaders = .init(),
+        body: T? = nil,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+        ) throws -> Response where T: Content {
+
+        var headers = headers
+        if loggedInRequest || loggedInUser != nil {
+            let username: String
+            if let user = loggedInUser {
+                username = user.username
+            } else {
+                username = "admin"
+            }
+            let credentials = BasicAuthorization(username: username, password: "password")
+
+            var tokenHeaders = HTTPHeaders()
+            tokenHeaders.basicAuthorization = credentials
+
+            let tokenResponse = try self.sendRequest(to: "/api/users/login", method: .POST, headers:  tokenHeaders)
+
+            let token = try tokenResponse.content.syncDecode(Token.self)
+            headers.add(name: .authorization, value: "Bearer \(token.token)")
+        }
+
+        // 创建一个和发送到 app 的 HTTP 请求
+        let request = HTTPRequest(method: method,
+                                  url: URL(string: path)!,
+                                  headers: headers)
+        let wrappedRequest = Request(http: request, using: self)
+
+        if let body = body {
+            try wrappedRequest.content.encode(body)
+        }
+
+        // 因为 app 本身没有正式运行，所以这里手动进行响应
+        let responder = try self.make(Responder.self)
+        return try responder.respond(to: wrappedRequest).wait()
+    }
+
+    func sendRequest(
+        to path: String,
+        method: HTTPMethod,
+        headers: HTTPHeaders = .init(),
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws -> Response {
+        let emptyContent: EmptyContent? = nil
+        return try sendRequest(to: path,
+                               method: method,
+                               headers: headers,
+                               body: emptyContent,
+                               loggedInRequest:loggedInRequest,
+                               loggedInUser: loggedInUser)
+    }
+
+    func sendRequest&lt;T&gt;(
+        to path: String,
+        method: HTTPMethod,
+        headers: HTTPHeaders,
+        data: T,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+        ) throws where T: Content {
+
+        _ =  try sendRequest(to: path,
+                               method: method,
+                               headers: headers,
+                               body: data,
+                               loggedInRequest: loggedInRequest,
+                               loggedInUser: loggedInUser)
+    }
+
+
+    func getResponse&lt;C, T&gt;(
+        to path: String,
+        method: HTTPMethod = .GET,
+        headers: HTTPHeaders = .init(),
+        data: C? = nil,
+        decodeTo type: T.Type,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+        ) throws -> T where C: Content, T: Decodable {
+
+        let response = try self.sendRequest(to: path,
+                                            method: method,
+                                            headers: headers,
+                                            body: data,
+                                            loggedInRequest: loggedInRequest,
+                                            loggedInUser: loggedInUser)
+        // 从响应数据中解析出用户数据，也即从数据库中检索出来的用户数据
+        return try response.content.decode(type).wait()
+    }
+
+    func getResponse&lt;T&gt; (
+        to path: String,
+        method: HTTPMethod = .GET,
+        headers: HTTPHeaders = .init(),
+        decodeTo type: T.Type,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws -> T where T: Decodable {
+        let emptyContent: EmptyContent? = nil
+        return try self.getResponse(to: path,
+                                    method: method,
+                                    headers: headers,
+                                    data: emptyContent,
+                                    decodeTo: type,
+                                    loggedInRequest: loggedInRequest,
+                                    loggedInUser: loggedInUser)
+    }
+}</code></pre>
+<h2>更新缩略语测试</h2>
+<p>创建、更新、删除等写操作都带上 <code>loggedInRequest: true</code> 或指定 <code>loggedInUser</code>：</p>
+<pre><code>func testAcronymCanBeSavedWithAPI() throws {
+    ...
+    let receivedAcronym = try app.getResponse(to: acronymsURI, method: .POST, headers: ["Content-Type": "application/json"], data: acronym, decodeTo: Acronym.self, loggedInRequest: true)
+    ...
+}
+
+func testUpdatingAnAcronym() throws {
+    ...
+    try app.sendRequest(to: "\(acronymsURI)\(acronym.id!)", method: .PUT, headers: ["Content-Type": "application/json"], data: updatedAcronym, loggedInUser: newUser)
+    ...
+}
+
+func testDeletingAnAcronym() throws {
+    ...
+    _ = try app.sendRequest(to: "\(acronymsURI)\(acronym.id!)", method: .DELETE, loggedInRequest: true)
+    ...
+}
+
+func testGettingAnAcronymsUser() throws {
+    ...
+    let acronymsUser = try app.getResponse(to: "\(acronymsURI)\(acronym.id!)/user", decodeTo: User.Public.self)
+    ...
+}
+
+func testAcronymsCategories() throws {
+    ...
+    let categories = try app.getResponse(to: "\(acronymsURI)\(acronym.id!)/categories", decodeTo: [App.Category].self, loggedInRequest: true)
+
+    ...
+
+    _ = try app.sendRequest(to: "\(acronymsURI)\(acronym.id!)/categories/\(category.id!)", method: .DELETE)
+    let newCategories = try app.getResponse(to: "\(acronymsURI)\(acronym.id!)/categories", decodeTo: [App.Category].self, loggedInRequest: true)
+
+    ...
+}
+
+func testAcronymsCategories() throws {
+    ...
+    let request1URL = "\(acronymsURI)\(acronym.id!)/categories/\(category.id!)"
+    _ = try app.sendRequest(to: request1URL,method: .POST,loggedInRequest: true)
+
+    let request2URL = "\(acronymsURI)\(acronym.id!)/categories/\(category2.id!)"
+    _ = try app.sendRequest(to: request2URL,method: .POST,loggedInRequest: true)
+
+    let categories = try app.getResponse(to: "\(acronymsURI)\(acronym.id!)/categories", decodeTo: [App.Category].self)
+
+    XCTAssertEqual(categories.count, 2)
+    XCTAssertEqual(categories[0].id, category.id)
+    XCTAssertEqual(categories[0].name, category.name)
+    XCTAssertEqual(categories[1].id, category2.id)
+    XCTAssertEqual(categories[1].name, category2.name)
+
+    let request3URL = "\(acronymsURI)\(acronym.id!)/categories/\(category.id!)"
+    _ = try app.sendRequest(to: request3URL,method: .DELETE,loggedInRequest: true)
+    ...
+}</code></pre>
+<h2>更新分类测试与用户测试</h2>
+<pre><code>func testCategoryCanBeSavedWithAPI() throws {
+    ...
+    let receivedCategory = try app.getResponse(to: categoriesURI, method: .POST, headers: ["Content-Type": "application/json"], data: category, decodeTo: Category.self, loggedInRequest:true)
+    ...
+}
+
+func testGettingACategoriesAcronymsFromTheAPI() throws {
+    ...
+    let acronym1URL = "/api/acronyms/\(acronym.id!)/categories/\(category.id!)"
+    _ = try app.sendRequest(to: acronym1URL, method: .POST,loggedInRequest:true)
+
+    let acronym2URL = "/api/acronyms/\(acronym2.id!)/categories/\(category.id!)"
+    _ = try app.sendRequest(to: acronym2URL, method: .POST, loggedInRequest: true)
+
+    let acronyms = try app.getResponse(to: "\(categoriesURI)\(category.id!)/acronyms", decodeTo: [Acronym].self, loggedInRequest: true
+    ...
+}</code></pre>
+<pre><code>func testUsersCanBeRetrievedFromAPI() throws {
+    ...
+    // 发请求并获得响应
+    let users = try app.getResponse(to: usersURI, decodeTo: [User.Public].self)
+    ...
+    // 考虑到有一个管理员帐户
+    XCTAssertEqual(users.count, 3)
+    XCTAssertEqual(users[1].name, usersName)
+    XCTAssertEqual(users[1].username, usersUsername)
+    XCTAssertEqual(users[1].id, user.id)
+}
+
+func testUserCanBeSavedWithAPI() throws {
+    let user = User(name: usersName, username: usersUsername, password: "password")
+    let receivedUser = try app.getResponse(to: usersURI,
+                                            method: .POST,
+                                            headers: ["Content-Type":"application/json"],
+                                            data: user,
+                                            decodeTo: User.Public.self,
+                                            loggedInRequest: true)
+    ...
+    let users = try app.getResponse(to: usersURI,
+                                decodeTo: [User.Public].self)
+    ...
+    // 考虑到有一个管理员帐户
+    XCTAssertEqual(users.count, 2)
+    XCTAssertEqual(users[1].name, usersName)
+    XCTAssertEqual(users[1].username, usersUsername)
+    XCTAssertEqual(users[1].id, receivedUser.id)
+}
+
+func testGettingASingleUserFromTheAPI() throws {
+    ...
+    let receivedUser = try app.getResponse(to: "\(usersURI)\(user.id!)", decodeTo: User.Public.self)
+    ...
+}</code></pre>
+<div class="callout">修改完之后一定要把单元测试完整跑一遍，确保所有受保护的接口在带 token 的情况下都能正常工作。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

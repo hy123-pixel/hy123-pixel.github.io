@@ -1,0 +1,240 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 给缩略语添加分类标签：扩展 Category、Select2 美化多选、并在创建与编辑时保存/同步分类。"><title>添加分类 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-add-categories.svg" alt="添加分类 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 9 分钟</time></div><h1>添加分类</h1><p class="article-lead">本章给缩略语加上「分类标签」：先在模型层实现给缩略语挂分类的方法，再用 Select2 美化多选框，最后在创建与编辑时保存并同步分类。</p>
+
+<h2>给 Category 模型加扩展方法</h2>
+<p>为 <code>Category</code> 添加一个扩展方法 <code>addCategory(_:to:on:)</code>：先按名字查找分类，若已存在就直接建立关联；否则新建分类并保存后再关联。返回一个 <code>Future&lt;Void&gt;</code>。</p>
+<pre><code>extension Category {
+    ...
+
+    static func addCategory(_ name: String,
+                            to acronym: Acronym,
+                            on req: Request
+        ) throws -> Future&lt;Void&gt; {
+        return Category.query(on: req).filter(\.name == name).first()
+            .flatMap(to: Void.self) { foundCategory in
+                if let existingCategory = foundCategory {
+                    return acronym.categories.attach(existingCategory, on: req)
+                    .transform(to: ())
+                }
+                else {
+                    let category = Category(name: name)
+                    return category.save(on: req).flatMap(to: Void.self) { savedCategory in
+                        return acronym.categories.attach(savedCategory, on: req).transform(to: ())
+
+                    }
+                }
+        }
+    }
+}</code></pre>
+
+<h2>创建时接收并保存分类</h2>
+<p>定义一个 <code>CreateAcronymData</code> 结构体接收表单，其中 <code>categories</code> 是可选的字符串数组。</p>
+<pre><code>struct CreateAcronymData: Content {
+    let userID: User.ID
+    let short: String
+    let long: String
+    let categories: [String]?
+}</code></pre>
+<p>把创建路由改成解码 <code>CreateAcronymData</code>，保存缩略语后遍历分类逐个调用 <code>addCategory</code>，用 <code>flatten(on:)</code> 等全部完成后重定向。</p>
+<pre><code>router.post(CreateAcronymData.self, at: "acronyms", "create", use: createAcronymPostHandler)</code></pre>
+<pre><code>func createAcronymPostHandler(_ req: Request, data: CreateAcronymData) throws -> Future&lt;Response&gt; {
+
+        let acronym = Acronym(short: data.short, long: data.long, userID: data.userID)
+
+
+        return acronym.save(on: req).flatMap(to: Response.self) { acronym in
+            guard let id = acronym.id else {
+                throw Abort(HTTPStatus.internalServerError)
+            }
+            var categorySaves: [Future&lt;Void&gt;] = []
+            for category in data.categories ?? [] {
+                try categorySaves.append(Category.addCategory(category, to: acronym, on: req))
+            }
+            let redirect = req.redirect(to: "/acronyms/\(id)")
+            return categorySaves.flatten(on: req).transform(to: redirect)
+        }
+    }</code></pre>
+
+<h2>用 Select2 美化多选框</h2>
+<p>在 <code>createAcronym.leaf</code> 中把分类做成一个 <code>multiple</code> 的多选下拉框，<code>name="categories[]"</code> 可发送经 URL 编码的数组数据。</p>
+<pre><code>    ...
+        &lt;div class="form-group"&gt;
+            &lt;label for="categories"&gt;Categories&lt;/label&gt;
+            &lt;select name="categories[]" class="form-control" id="categories" placeholder="Categories" multiple="multiple"&gt;
+            &lt;/select&gt;
+        &lt;/div&gt;
+        &lt;button type="submit" class = "btn btn-primary"&gt;
+            #if(editing) { Update } else { Submit }
+        &lt;/button&gt;
+    &lt;/form&gt;
+}
+...</code></pre>
+<p>由于现有缩略语还没有分类数据，下拉框是空的也不好看，所以引入 <a href="https://cdnjs.com/libraries/select2">Select2</a> 这个 JS 库来美化。因为 jQuery 的 slim 版本缺少 Select2 所需函数，需换用完整版 jQuery，并在模板里引入本地 JS。</p>
+<pre><code>&lt;head&gt;
+    ...
+    #if(title=="Create An Acronym") {
+        &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.css" /&gt;
+    }
+    #if(title=="Edit Acronym"){
+        &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.css" /&gt;
+    }
+&lt;title&gt;#(title) | Acronyms&lt;/title&gt;
+&lt;/head&gt;
+...
+&lt;!-- Optional JavaScript --&gt;
+&lt;!-- jQuery first, then Popper.js, then Bootstrap JS --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"&gt;&lt;/script&gt;
+
+#if(title=="Create An Acronym") {
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.min.js"&gt;&lt;/script&gt;
+    &lt;script src="/scripts/createAcronym.js"&gt;&lt;/script&gt;
+}
+#if(title == "Edit Acronym"){
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.min.js"&gt;&lt;/script&gt;
+    &lt;script src="/scripts/createAcronym.js"&gt;&lt;/script&gt;
+}
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"&gt;&lt;/script&gt;
+&lt;script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"&gt;&lt;/script&gt;
+&lt;/body&gt;</code></pre>
+<p>本地 <code>Public/scripts/createAcronym.js</code> 通过 AJAX 拉取分类列表，喂给 Select2 渲染成可搜索、可新建标签的下拉框。</p>
+<pre><code>$.ajax({
+       url: "/api/categories/",
+       type: "GET",
+       contentType: "application/json; charset=utf-8"
+       })
+.then(function (response) {
+      var dataToReturn = [];
+
+      for(var i = 0; i &lt; response.length; i++) {
+      var tagToTransform = response[i];
+      var newTag = {
+      id: tagToTransform["name"],
+      text: tagToTransform["name"]
+      };
+
+      dataToReturn.push(newTag);
+      }
+
+      $("#categories").select2({
+                               placeholder: "Select Categories for the Acronym",
+                               tags: true,
+                               tokenSeparator: [','],
+                               data: dataToReturn
+                               });
+      });</code></pre>
+
+<h2>详情页显示分类</h2>
+<p>在 <code>acronym.leaf</code> 里用 <code>#if(count(categories) &gt; 0)</code> 列出该缩略语的分类，每个分类链接到分类详情页。</p>
+<pre><code>#set("content"){
+...
+    #if(count(categories) &gt; 0) {
+        &lt;h3&gt;Categories&lt;/h3&gt;
+        &lt;ul&gt;
+            #for(category in categories) {
+            &lt;li&gt;
+                &lt;a href="/category/#(category.id)"&gt;
+                    #(category.name)
+                &lt;/a&gt;
+            &lt;/li&gt;
+            }
+        &lt;/ul&gt;
+    }
+    &lt;form method="post" action="/acronyms/#(acronym.id)/delete"&gt;
+        &lt;a class="btn btn-primary" href="/acronyms/#(acronym.id)/edit" role="button"&gt;Edit&lt;/a&gt;&nbsp;
+        &lt;input class="btn btn-danger" type="submit" value="Delete" /&gt;
+    &lt;/form&gt;
+}
+
+#embed("base")</code></pre>
+<p>详情页控制器 <code>acronymHandler</code> 也需把分类查出来放进上下文。</p>
+<pre><code>struct AcronymContext: Encodable {
+    let title: String
+    let acronym: Acronym
+    let user: User
+    let categories: Future&lt;[Category]&gt;
+}
+...
+func acronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+    return try req.parameters.next(Acronym.self)
+        .flatMap(to: View.self) { acronym in
+            return acronym.user.get(on: req)
+                .flatMap(to: View.self) { user in
+                    let categories = try acronym.categories.query(on: req).all()
+                    let context = AcronymContext(
+                        title: acronym.short,
+                        acronym: acronym,
+                        user: user,
+                        categories: categories)
+                    return try req.view().render("acronym", context)
+            }
+    }
+}</code></pre>
+
+<h2>编辑时同步分类</h2>
+<p>目前编辑时选中的分类不会被保存，需要改进。先给 <code>EditAcronymContext</code> 加上 <code>categories</code>，编辑页方法查询出已有分类。</p>
+<pre><code>struct EditAcronymContext: Encodable {
+    let title = "Edit Acronym"
+    let acronym: Acronym
+    let users: Future&lt;[User]&gt;
+    let editing = true
+    let categories: Future&lt;[Category]&gt;
+}
+...
+    func editAcronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        return try req.parameters.next(Acronym.self)
+            .flatMap(to: View.self) { acronym in
+                let users = User.query(on: req).all()
+                let categories = try acronym.categories.query(on: req).all()
+                let context = EditAcronymContext(acronym: acronym,
+                                                 users: users,
+                                                 categories: categories)
+                return try req.view().render("createAcronym", context)
+        }
+    }</code></pre>
+<p>提交处理方法改为解码 <code>CreateAcronymData</code>，保存后对比「已有分类集合」与「新选分类集合」，用集合的差集算出要新增和要移除的，再分别 <code>addCategory</code> / <code>detach</code>，最后统一 <code>flatten(on:)</code> 后重定向。</p>
+<pre><code>    func editAcronymPostHandler(_ req: Request) throws -> Future&lt;Response&gt; {
+        return try flatMap(to: Response.self,
+                           req.parameters.next(Acronym.self),
+                           req.content.decode(CreateAcronymData.self)
+        ) { acronym, data in
+            acronym.short = data.short
+            acronym.long = data.long
+            acronym.userID = data.userID
+
+            return acronym.save(on: req).flatMap(to: Response.self) { savedAcronym in
+                guard let id = savedAcronym.id else {
+                    throw Abort(HTTPResponseStatus.internalServerError)
+                }
+
+                return try acronym.categories.query(on: req).all()
+                    .flatMap(to: Response.self) { existingCategories in
+                        let existingStringArry = existingCategories.map { $0.name }
+
+                        let existingSet = Set&lt;String&gt;(existingStringArry)
+                        let newSet = Set&lt;String&gt;(data.categories ?? [])
+
+                        let categoriesToAdd = newSet.subtracting(existingSet)
+                        let categoriesToRemove = existingSet.subtracting(newSet)
+
+                        var categoryResults: [Future&lt;Void&gt;] = []
+
+                        for newCategory in categoriesToAdd {
+                            categoryResults.append(try Category.addCategory(newCategory, to: acronym, on: req))
+                        }
+
+                        for categoryNameToRemove in categoriesToRemove {
+                            let categoryToRemove = existingCategories.first {
+                                $0.name == categoryNameToRemove
+                            }
+                            if let category = categoryToRemove {
+                                categoryResults.append(acronym.categories.detach(category, on: req))
+                            }
+                        }
+                        return categoryResults.flatten(on: req)
+                        .transform(to: req.redirect(to: "/acronyms/\(id)"))
+                }
+            }
+        }
+    }</code></pre>
+<div class="callout">提示：用 <code>Set</code> 的差集来同步分类，可避免重复添加或漏删，是处理「多对多关系增量更新」的常用技巧。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

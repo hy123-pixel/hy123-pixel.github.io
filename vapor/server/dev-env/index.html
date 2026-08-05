@@ -1,0 +1,54 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 macOS 与 Ubuntu 上搭建 Vapor 开发环境，安装 Xcode、Homebrew 与 Vapor 工具箱，并配置 Xcode / VS Code 开发工具。"><title>开发环境准备 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-dev-env.svg" alt="开发环境准备 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>开发环境准备</h1><p class="article-lead">动手写第一行 Vapor 代码前，先把开发环境搭好。本文带你分别在 macOS 和 Ubuntu 上安装 Swift 与 Vapor 工具箱，并配置顺手的编辑器。</p>
+
+<h2>支持的平台</h2>
+<p>目前，Vapor 的开发环境主要是在 macOS 和 Ubuntu 两个平台部署。macOS 平台上可以借助 Xcode 这个 IDE 进行开发。在 macOS 上你要先安装好 Xcode，Xcode 内置有 Swift 开发环境，Vapor 要求 Swift 版本在 5.2 及以上。使用 shell 命令查看 Swift 版本：</p>
+<pre><code>swift --version</code></pre>
+<p>下面是 macOS 和 Ubuntu 两个系统平台上部署 Vapor 开发环境的具体步骤。</p>
+
+<h2>macOS 平台</h2>
+<ol>
+<li>先从 App Store 安装开发工具 <a href="https://apps.apple.com/cn/app/xcode/id497799835?mt=12" target="_blank" rel="noopener">Xcode</a>（Swift 开发环境）。</li>
+<li>再到 <a href="https://brew.sh/" target="_blank" rel="noopener">Homebrew 官网</a>，安装 Homebrew 包管理器：
+<pre><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
+</li>
+<li>使用 Homebrew 包管理器安装 Vapor 开发工具：
+<pre><code>brew install vapor</code></pre>
+</li>
+</ol>
+
+<h2>Ubuntu 平台</h2>
+<ol>
+<li>浏览 <a href="https://swift.org/download" target="_blank" rel="noopener">Swift 官网</a>，按照官方指导，下载 Swift 工具链并安装开发环境，安装完成后查看 swift 版本号：<code>swift --version</code>。</li>
+<li>从源码安装 Vapor：
+<pre><code>git clone https://github.com/vapor/toolbox.git
+cd toolbox
+git checkout &lt;desired version&gt;
+make install</code></pre>
+</li>
+</ol>
+
+<h2>检查 Vapor 是否安装成功</h2>
+<pre><code>vapor --help</code></pre>
+<p>执行完上面的步骤，Vapor 的开发环境就布置完成了。</p>
+<p>如果你的开发平台是 macOS，建议使用 Xcode 作为开发工具。目前在 Ubuntu 上还没有对 Swift 支持比较好的 IDE，可以使用 <a href="https://code.visualstudio.com" target="_blank" rel="noopener">Visual Studio Code</a> 安装 Swift 插件的方式进行开发，命令行下也可以使用 <a href="https://github.com/vim/vim" target="_blank" rel="noopener">Vim</a> 编辑器进行 Swift 相关开发。</p>
+
+<h2>用 Xcode 打开工程（macOS）</h2>
+<p>只需要在 Vapor 创建的项目根目录下运行命令，即可打开 Xcode 工程进行开发：</p>
+<pre><code>cd HelloVapor
+vapor xcode   # 也可以使用 open Package.swift 的方式让Xcode打开SPM项目工程</code></pre>
+
+<h2>用 Visual Studio Code 开发（通用）</h2>
+<ol>
+<li>本地需要先安装好 Swift 环境。</li>
+<li>安装 <a href="https://code.visualstudio.com" target="_blank" rel="noopener">Visual Studio Code</a>。</li>
+<li>安装 Visual Studio Code 插件：<a href="https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang" target="_blank" rel="noopener">sswg.swift-lang</a>，插件的相关文档可以参考：<a href="https://github.com/swift-server/vscode-swift#readme" target="_blank" rel="noopener">README</a>。</li>
+<li>使用 Visual Studio Code 打开 Vapor 工程根目录。</li>
+<li>运行、打断点、调试可以直接按常规操作进行。</li>
+</ol>
+
+<h2>用 Vim 开发（命令行 IDE）</h2>
+<div class="callout">TODO：添加 Vim 配置 Swift 开发环境。</div>
+
+<p>Swift 开发环境和 Vapor 工具安装成功后，下一步就可以尝试开发了。</p>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

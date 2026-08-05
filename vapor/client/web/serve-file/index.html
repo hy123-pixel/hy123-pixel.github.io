@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 的 FileMiddleware 托管 Public 目录下的静态文件，如图片、样式表等，实现文件下载与资源服务。"><title>提供文件下载 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-serve-file.svg" alt="提供文件下载 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>提供文件下载</h1><p class="article-lead">网站离不开图片、样式表这些静态资源。本文用 Vapor 3 的 FileMiddleware 把 <code>Public</code> 目录变成文件服务根目录，轻松托管与下载文件。</p>
+<h2>一、什么是文件服务</h2>
+<p>几乎每一个网站都需要存放一些静态文件，例如图片和样式表文件。通常这需要 CDN 或 Nginx/Apache 来托管，而 Vapor 提供了 <code>FileMiddleware</code> 模块来完成这些事情。</p>
+<p>要使用文件服务中间件，需要在 <code>configure.swift</code> 里注册它。默认使用 <code>Public</code> 目录作为文件服务的根目录，里面的文件可以是图片、样式表等：</p>
+<pre><code>...
+    var middlewares = MiddlewareConfig() // Create _empty_ middleware config
+    /// middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
+    middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
+    middlewares.use(FileMiddleware.self) //
+    services.register(middlewares)
+...</code></pre>
+<div class="callout"><strong>小提示：</strong><code>FileMiddleware</code> 默认只服务 <code>Public/</code> 目录。把文件放进这里，浏览器就能通过根路径直接访问，例如 <code>/images/logo.png</code>。</div>
+<h2>二、在页面里引用静态文件</h2>
+<p>在 <code>Public</code> 目录下放置一张图片，比如 <code>Public/images/logo.png</code>，然后修改 <code>index.leaf</code>，用相对路径引用它：</p>
+<pre><code>...
+&lt;img src="/images/logo.png" class = "mx-auto d-block" alt="TIL Logo" /&gt;
+&lt;h1&gt;Acronyms&lt;/h1&gt;
+...</code></pre>
+<p>这样首页就能显示这张 logo，浏览器访问 <code>/images/logo.png</code> 时，<code>FileMiddleware</code> 会自动把 <code>Public/images/logo.png</code> 返回给客户端——也就是「提供文件下载 / 资源服务」的效果。</p>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

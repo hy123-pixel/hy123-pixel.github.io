@@ -1,0 +1,72 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="使用 Vapor 的 Content 协议，让结构体自动编码为 JSON，并通过 POST 路由返回 JSON 数据，用 curl 与 jq 测试。"><title>返回 JSON 数据 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-return-json.svg" alt="返回 JSON 数据 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>返回 JSON 数据</h1><p class="article-lead">现代接口大多返回 JSON。本文用 Vapor 的 Content 协议，让结构体自动编成 JSON，并通过一个 POST 路由把数据原样返回。</p>
+
+<h2>让结构体自动编码为 JSON</h2>
+<p><code>Content</code> 协议也可以编码结构体成为 JSON 数据，在代码中定义一个遵循 <code>Content</code> 协议的结构体 <code>InfoResponse</code>，使用请求数据初始化一个响应结构体对象，直接返回，JSON 编码会自动完成，并返回 JSON 数据给用户。</p>
+
+<pre><code>import Vapor
+
+func routes(_ app: Application) throws {
+    app.get { req in
+        return "It works!"
+    }
+
+    app.get("hello") { req -> String in
+        return "Hello, world!"
+    }
+
+    // Add Routes
+    app.get("hello", ":name") { req -> String in
+        guard let name = req.parameters.get("name", as: String.self) else {
+            return "\(HTTPStatus.notFound)"
+        }
+        return "Hello, \(name)"
+    }
+    // ---
+    app.post("info") { (req) -> InfoResponse in
+        let info = try req.content.decode(InfoData.self)
+
+        let response = InfoResponse(requestData: info)
+        return response
+    }
+
+}
+
+
+struct InfoData: Content {
+    let name: String
+}
+
+struct InfoResponse: Content {
+    let requestData: InfoData
+}</code></pre>
+
+<h2>用 curl 测试</h2>
+<p>下面是测试命令：</p>
+<pre><code>curl http://localhost:8080/info \
+-X POST \
+-H "content-type:application/json" \
+-d '{"name":"joker"}' </code></pre>
+<p>返回的 JSON：</p>
+<pre><code>{"requestData":{"name":"joker"}}</code></pre>
+
+<h2>用 jq 格式化输出</h2>
+<p>如果想格式化输入的话，可以使用 <code>jq</code> 工具命令。</p>
+<div class="callout">
+<ul>
+<li><code>jq</code> 这个命令行工具，系统可能没有自带。</li>
+<li>macOS 可以使用 <code>brew install jq</code> 进行安装。</li>
+<li>Ubuntu 可以使用 <code>sudo apt-get install jq -y</code> 进行安装。</li>
+</ul>
+</div>
+<pre><code>curl -s http://localhost:8080/info \
+-X POST \
+-H "content-type:application/json" \
+-d '{"name":"joker"}' | jq</code></pre>
+<pre><code>{
+    "requestData": {
+        "name": "joker"
+    }
+}</code></pre>
+<p>使用 rested 应用测试如下。</p>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

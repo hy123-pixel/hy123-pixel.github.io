@@ -1,0 +1,131 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="拆解 Vapor 模板工程，搞清楚 Package.swift、Sources、Tests 各自是什么，以及程序从哪里启动。"><title>API 模板与约定 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-api-template.svg" alt="API 模板与约定 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 7 分钟</time></div><h1>API 模板与约定</h1><p class="article-lead">本文拆解 Vapor 模板工程，弄清楚 Package.swift、Sources、Tests 各自代表什么，以及程序到底从哪里启动。</p>
+<h2>目录总体结构</h2>
+<p>用 <code>vapor new</code> 生成的模板工程，顶层目录大致如下：</p>
+<pre><code>$ tree -L 1 .
+.
+├── Dockerfile
+├── Package.resolved
+├── Package.swift
+├── Public
+├── Sources
+├── Tests
+└── docker-compose.yml
+
+3 directories, 4 files</code></pre>
+<ul>
+<li><code>Package.resolved</code>：解析 <code>Package.swift</code> 时自动生成，开发者无需修改。</li>
+<li><code>Package.swift</code>：描述项目的依赖与产物信息。</li>
+<li><code>Public</code>：公共资源目录，存放图片、CSS、JS 以及 Leaf 模板等。</li>
+<li><code>Sources</code>：整个工程的主体源代码。</li>
+<li><code>Tests</code>：针对工程功能编写的测试用例。</li>
+<li><code>Dockerfile</code> 与 <code>docker-compose.yml</code>：部署到 Docker 容器时使用的配置。</li>
+</ul>
+<h2>Sources 子目录</h2>
+<pre><code>$ tree Sources/
+Sources
+├── App
+│   ├── Controllers
+│   ├── configure.swift
+│   └── routes.swift
+└── Run
+    └── main.swift
+
+3 directories, 3 files</code></pre>
+<p><code>Sources</code> 下的每个子目录都是一个模块。<code>App</code> 是功能模块，<code>Run</code> 是可执行模块——编译后由操作系统调起运行；<code>App</code> 不能单独运行，它被 <code>Run</code> 依赖。整个程序的入口是 <code>main.swift</code>。</p>
+<h2>Package.swift 项目描述</h2>
+<p><code>Package.swift</code> 描述了整个工程如何构成：</p>
+<pre><code>// swift-tools-version:5.6
+import PackageDescription
+
+let package = Package(
+    name: "HelloVapor",
+    platforms: [
+    .macOS(.v12)
+    ],
+    dependencies: [
+        // 💧 A server-side Swift web framework.
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
+    ],
+    targets: [
+        .target(
+            name: "App",
+            dependencies: [
+                .product(name: "Vapor", package: "vapor")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-cross-module-optimization"], .when(configuration: .release))
+            ]
+        ),
+        .executableTarget(name: "Run", dependencies: [.target(name: "App")]),
+        .testTarget(name: "AppTests", dependencies: [
+            .target(name: "App"),
+            .product(name: "XCTVapor", package: "vapor"),
+        ])
+    ]
+)</code></pre>
+<p>从描述文件可以看出：每个 Target 是一个模块。<code>App</code> 依赖了 <code>vapor</code> 包里的 <code>Vapor</code> 模块，依赖信息在 <code>dependencies</code> 数组中声明，SPM 会解析并拉取相关文件参与编译。<code>Run</code> 可执行模块依赖 <code>App</code> 功能模块；<code>AppTests</code> 模块依赖 <code>App</code>，因为它是专门给 <code>App</code> 写的测试。</p>
+<h2>示例工程的代码逻辑</h2>
+<p>程序以 <code>main.swift</code> 为入口，读取命令行参数与环境变量，据此创建 app，并在运行前用 <code>configure.swift</code> 里的 <code>configure</code> 函数完成配置：</p>
+<pre><code>import App
+import Vapor
+
+var env = try Environment.detect()
+try LoggingSystem.bootstrap(from: &env)
+let app = Application(env)
+defer { app.shutdown() }
+try configure(app)
+try app.run()</code></pre>
+<pre><code>import Vapor
+
+// configures your application
+public func configure(_ app: Application) throws {
+    // uncomment to serve files from /Public folder
+    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+
+    // register routes
+    try routes(app)
+}</code></pre>
+<p>配置过程中会调用 <code>routes.swift</code> 来注册路由：</p>
+<pre><code>import Vapor
+
+func routes(_ app: Application) throws {
+    app.get { req async in
+        "It works!"
+    }
+
+    app.get("hello") { req async -> String in
+        "Hello, world!"
+    }
+}</code></pre>
+<p>在 <code>HelloVapor</code> 根目录用 <code>vapor run</code> 或 <code>swift run</code> 编译运行后，就能在浏览器里测试 <code>/</code> 与 <code>/hello</code> 这两个 GET 路由。</p>
+<h2>测试子模块</h2>
+<p><code>Tests</code> 目录结构：</p>
+<pre><code>$ tree Tests
+Tests
+└── AppTests
+    └── AppTests.swift
+
+1 directory, 1 file</code></pre>
+<p>在 <code>AppTests.swift</code> 里编写测试 <code>App</code> 模块的用例：</p>
+<pre><code>@testable import App
+import XCTVapor
+
+final class AppTests: XCTestCase {
+    func testHelloWorld() throws {
+        let app = Application(.testing)
+        defer { app.shutdown() }
+        try configure(app)
+
+        try app.test(.GET, "hello", afterResponse: { res in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssertEqual(res.body.string, "Hello, world!")
+        })
+    }
+}</code></pre>
+<p>在工程根目录用 <code>swift test</code> 运行测试。在 Mac 上也可以直接用 Xcode 开发：</p>
+<pre><code>$ vapor xcode</code></pre>
+<ul>
+<li><code>Cmd</code> + <code>R</code>：运行程序</li>
+<li><code>Cmd</code> + <code>U</code>：执行测试</li>
+</ul>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

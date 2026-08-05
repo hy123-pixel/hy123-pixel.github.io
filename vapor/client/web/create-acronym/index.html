@@ -1,0 +1,66 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 的 Leaf 模板和 WebsiteController，实现创建缩略语（Acronym）的网页表单与提交处理。"><title>创建缩略语页面 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-create-acronym.svg" alt="创建缩略语页面 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>创建缩略语页面</h1><p class="article-lead">本章我们在网站前端加上一个「创建缩略语」的网页：既有填写表单的页面，也有接收表单提交、把数据存进数据库的接口。</p>
+
+<h2>在控制器里添加路由和处理方法</h2>
+<p>首先，在 <code>WebsiteController.swift</code> 中定义一个用于渲染「创建缩略语」页面的上下文 <code>CreateAcronymContext</code>。除了页面标题，它还用一个 <code>Future&lt;[User]&gt;</code> 把所有可能的创建者（用户列表）传给模板，让下拉框能选择作者。</p>
+<pre><code>struct CreateAcronymContext: Encodable {
+    let title = "Create An Acronym"
+    let users: Future&lt;[User]&gt;
+}</code></pre>
+<p>接着在 <code>boot(router:)</code> 里注册两条路由：一条 <code>GET</code> 用于显示创建页面，一条 <code>POST</code> 用于接收提交。注意 <code>router.post(Acronym.self, at: ...)</code> 这种写法，Vapor 会自动把提交上来的表单解码成 <code>Acronym</code> 实例并作为参数传入。</p>
+<pre><code>router.get("acronyms", "create", use: createAcronymHandler)
+router.post(Acronym.self, at: "acronyms", "create", use: createAcronymPostHandler)</code></pre>
+<p>其中 <code>createAcronymHandler</code> 通过 <code>User.query(on: req).all()</code> 取出全部用户，并用 <code>req.view().render("createAcronym", context)</code> 渲染 Leaf 模板返回页面。</p>
+<pre><code>func createAcronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+    let context = CreateAcronymContext(users: User.query(on: req).all())
+    return try req.view().render("createAcronym", context)
+}</code></pre>
+<p>提交处理方法里，Vapor 已经帮我们把表单解码成了 <code>acronym</code>。直接 <code>acronym.save(on: req)</code> 保存，保存成功后拿到 <code>id</code>，再重定向到该缩略语的详情页。若保存后拿不到 <code>id</code> 则抛出 500 错误。</p>
+<pre><code>func createAcronymPostHandler(_ req: Request, acronym: Acronym) throws -> Future&lt;Response&gt; {
+    return acronym.save(on: req).map(to: Response.self) { acronym in
+        guard let id = acronym.id else {
+            throw Abort(HTTPStatus.internalServerError)
+        }
+
+        return req.redirect(to: "/acronyms/\(id)")
+    }
+}</code></pre>
+
+<h2>编写 createAcronym.leaf 模板</h2>
+<p>新建 <code>Resources/Views/createAcronym.leaf</code>，用 Bootstrap 的表单组件做一个提交页面。下拉框通过 <code>#for(user in users)</code> 遍历控制器传来的用户列表渲染选项；表单的 <code>method</code> 是 <code>post</code>，提交后由上面的 <code>POST</code> 路由接收。</p>
+<pre><code>#set("content"){
+    &lt;h1&gt;#(title)&lt;/h1&gt;
+    &lt;form method = "post"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for = "short"&gt;Acronym&lt;/label&gt;
+            &lt;input type="text" name="short" class="form-control" id = "short"/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for = "long"&gt;Meaning&lt;/label&gt;
+            &lt;input type="text" name="long" class="form-control" id="long"/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="userID"&gt;User&lt;/label&gt;
+            &lt;select name="userID" class="form-control" id="userID"&gt;
+                #for(user in users) {
+                    &lt;option value="#(user.id)"&gt;
+                        #(user.name)
+                    &lt;/option&gt;
+                }
+            &lt;/select&gt;
+        &lt;/div&gt;
+        &lt;button type="submit" class = "btn btn-primary"&gt;
+            Submit
+        &lt;/button&gt;
+    &lt;/form&gt;
+}
+
+#embed("base")</code></pre>
+
+<h2>在导航栏加上入口</h2>
+<p>最后在 <code>base.leaf</code> 的导航列表中加入「Create An Acronym」入口，并利用 <code>#if(title=="Create An Acronym"){active}</code> 在访问本页时高亮当前导航项。</p>
+<pre><code>&lt;li class="nav-item #if(title=="Create An Acronym"){active}"&gt;
+    &lt;a href="/acronyms/create" class="nav-link"&gt;Create An Acronym&lt;/a&gt;
+&lt;/li&gt;</code></pre>
+<div class="callout">提示：<code>router.post(Acronym.self, at: ...)</code> 依赖 <code>Acronym</code> 遵守 <code>Content</code> 协议，Vapor 才能把表单字段自动解码成模型属性。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

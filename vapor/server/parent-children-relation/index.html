@@ -1,0 +1,101 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Vapor 3 中用外键实现父子（一对一 / 一对多）关系，包括 Parent、Children 查询与外键约束。"><title>父子关系（外键） · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-parent-children-relation.svg" alt="父子关系（外键） 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 7 分钟</time></div><h1>父子关系（外键）</h1><p class="article-lead">父子关系描述一对一或一对多，例如一个人可以有多个宠物、一个宠物只能有一个主人。本文用 Vapor 3 的外键方式实现它，并加上外键约束。</p>
+
+<p>父子关系描述一对一或者一对多的关系，例如：一个人可以拥有一个宠物，一个人也可以拥有多个宠物，一个宠物只能有一个主人。这样的关系就是父子关系，即一个父亲可以有多个子女，但一个子女只能有一个父亲。</p>
+
+<h2>定义父子关系</h2>
+<p>因为孩子一定会有一个父亲，所以给孩子的数据模型中添加一个指向父亲的引用，就可以建立父子关系。</p>
+<p>从子的一边定义就可以了，添加了 <code>userID: User.ID</code> 属性，修改初始化函数，更新 <code>updateHandler</code>。</p>
+<pre><code>final class Acronym: Codable {
+    var id: Int?
+    var short: String
+    var long: String
+
+    // 一个用户创建一个缩略语
+    var userID: User.ID
+
+    init(short: String, long: String, userID: User.ID) {
+        self.short = short
+        self.long = long
+        self.userID = userID
+    }
+}</code></pre>
+<pre><code>func updateHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt; {
+    return try flatMap(to: Acronym.self, req.parameters.next(Acronym.self) req.content.decode(Acronym.self)) { (acronym, updateAcronym) - Future&lt;Acronym&gt; in
+        acronym.short = updateAcronym.short
+        acronym.long = updateAcronym.long
+        acronym.userID = updateAcronym.userID
+
+        return acronym.save(on: req)
+    }
+}</code></pre>
+
+<h2>关于数据库更新</h2>
+<p>因为 <code>Migration</code> 只会创建一次数据表，如果数据表已经创建，那么之后对数据模型的改动不会引起数据表的更新，所以需要重置数据库，重新创建数据表。还有一种方式是写数据库迁移规则，那个会涉及到数据库迁移，目前就是强制删库重建，因为目前的数据没有什么意义，这么做最方便。</p>
+
+<h2>从孩子侧获取父数据</h2>
+<p>由于我们在缩略词的数据结构中添加了它所属用户的 id，所以可以通过 <code>.parent</code> 方法来查询数据库中的用户数据，从而获取用户信息。需要添加一部分代码用来获取父亲的信息：</p>
+<pre><code>...
+// 获取父关系数据
+extension Acronym {
+    var user: Parent&lt;Acronym, User&gt; { // User是Acronym的父亲
+        return parent(\.userID)
+    }
+}</code></pre>
+<pre><code>routeGroup.get(Acronym.parameter, "user", use: getUserHandler)
+...
+func getUserHandler(_ req: Request) throws -&gt; Future&lt;User&gt; {
+    return try req.parameters.next(Acronym.self).flatMap(to: User.self) { (acronym) -&gt; Future&lt;User&gt; in
+        return acronym.user.get(on: req)
+    }
+ }</code></pre>
+
+<h2>获取子数据</h2>
+<p>从父数据中获取子数据，在这里就是获取一个用户创建的所有缩略词：</p>
+<pre><code>//获取子数据信息
+extension User {
+    var acronyms: Children&lt;User, Acronym&gt; { // Acronym是User的孩子
+        return children(\.userID)
+    }
+}</code></pre>
+<pre><code>usersGroup.get(User.parameter, "acronyms", use: getAcronymsHandler)
+...
+func getAcronymsHandler(_ req: Request) throws -&gt; Future&lt;[Acronym]&gt; {
+
+    return try req.parameters.next(User.self).flatMap(to: [Acronym].self)  (user) -&gt; Future&lt;[Acronym]&gt; in
+        return try user.acronyms.query(on: req).all()
+    }
+}</code></pre>
+
+<h2>外键约束</h2>
+<p>SQLite 不支持外键约束，添加外键约束使用 PostgreSQL 验证。</p>
+<p>外键约束描述两张表之间的链接关系，在数据有效性验证中经常使用。使用外键约束有下面的好处：</p>
+<ul>
+<li>确保不会创建出 userID 为无效用户的缩略语</li>
+<li>在删除用户创建的所有缩略语之前不能删除该用户</li>
+<li>在删除缩略语表之前无法删除用户表</li>
+</ul>
+<p>外键约束需要在 <code>Migration</code> 中定义，把原来 <code>Acronym.swift</code> 中对 Migration 的扩展改写如下：</p>
+<pre><code>// 在数据库中创建表及外键约束
+extension Acronym: Migration {
+    static func prepare(on connection: SQLiteConnection) -&gt; Future&lt;Void&gt; {
+
+        // 创建Acronym在数据库中的表
+        return Database.create(self, on: connection) { (builder) in
+
+            // 自动添加Acronym所有属性到数据表中
+            try addProperties(to: builder)
+
+            // 这一句添加了Acronym.userID到User.id的外键约束
+            builder.reference(from: \.userID, to: \User.id)
+        }
+    }
+}</code></pre>
+<p>同时因为添加了 Acronym 对 User 的外键约束，所以 User 对应的表应该先于 Acronym 表创建，所以需要调整一个 <code>configure.swift</code> 中的表创建顺序：</p>
+<pre><code>...
+var migrations = MigrationConfig()
+migrations.add(model: User.self, database: .sqlite)
+migrations.add(model: Acronym.self, database: .sqlite)
+services.register(migrations)</code></pre>
+<div class="callout">注意：因为数据库中表的关系有变换，并且表只能创建一次，所以如果不删库重建，外键约束关系是不会生效的。目前我们还没有学习数据库迁移，并且数据量不大也不重要，所以使用删库重建来使更改生效。每次表结构变化或关系变化，都执行此操作。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

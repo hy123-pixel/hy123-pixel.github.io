@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="使用 Vapor 的 Content 协议（基于 Codable）从 POST 请求中解码 JSON 数据到结构体，并用 curl 测试路由。"><title>接收客户端数据 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-accept-data.svg" alt="接收客户端数据 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 4 分钟</time></div><h1>接收客户端数据</h1><p class="article-lead">接口不只是返回数据，还要能收数据。本文用 Vapor 的 Content 协议从 POST 请求中解码 JSON，拿到客户端传来的字段。</p>
+
+<h2>Content 协议：从请求中提取数据</h2>
+<p><code>Content</code> 协议是 Vapor 对 <code>Codable</code> 协议的封装，用来从请求中提取数据。添加遵守 <code>Content</code> 协议的结构体 <code>InfoData</code>，它只有一个 <code>name</code> 字符串成员，<code>Content</code> 协议支持请求数据向结构体对象的解码转换。在 routes 文件中添加下面代码，编译运行。</p>
+
+<h3>POST 请求</h3>
+<pre><code>import Vapor
+
+func routes(_ app: Application) throws {
+    app.get { req in
+        return "It works!"
+    }
+
+    app.get("hello") { req -> String in
+        return "Hello, world!"
+    }
+
+    // Add Routes
+    app.get("hello", ":name") { req -> String in
+        guard let name = req.parameters.get("name", as: String.self) else {
+            return "\(HTTPStatus.notFound)"
+        }
+        return "Hello, \(name)"
+    }
+    // ---
+    app.post("info") { req -> String in
+        let info = try req.content.decode(InfoData.self)
+        return "Hello, \(info.name)"
+    }
+}
+struct InfoData: Content {
+    let name: String
+}</code></pre>
+
+<h2>用 curl 测试路由</h2>
+<p>我们使用 <code>curl</code> 这个工具来测试我们的路由是否正常工作，这个工具是类 Linux 系统都自带的命令行工具，不存在收费问题，可以免费使用，而且学习后端是必须掌握这个命令行工具的使用方法的。</p>
+<div class="callout">
+<ul>
+<li><code>-X</code> 表示请求类型：<code>GET</code> / <code>POST</code> / <code>PUT</code> / <code>DELETE</code>，默认为 <code>GET</code>。</li>
+<li><code>-H</code> 请求发起时的 Headers 设置。</li>
+<li><code>-d</code> 请求发起时所携带的数据。</li>
+</ul>
+</div>
+<p>curl 测试命令：</p>
+<pre><code>curl http://localhost:8080/info \
+-X POST \
+-H "content-type:application/json" \
+-d '{"name":"joker"}' </code></pre>
+<p>输出：</p>
+<pre><code>Hello, joker</code></pre>
+
+<h2>Rested（已弃用）</h2>
+<div class="callout">之前使用一个 Mac 上名叫 <a href="https://apps.apple.com/cn/app/rested-simple-http-requests/id421879749?mt=12" target="_blank" rel="noopener">rested</a> 的应用，模拟 POST 请求（现在这个 App 开始收费，不能免费使用了，并且在中国区无法下载）。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

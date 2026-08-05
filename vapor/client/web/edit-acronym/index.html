@@ -1,0 +1,89 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用 Vapor 3 实现编辑缩略语网页：GET 显示带数据的表单，POST 用 flatMap 解码并更新数据库。"><title>编辑缩略语页面 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-edit-acronym.svg" alt="编辑缩略语页面 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>编辑缩略语页面</h1><p class="article-lead">本章学习如何给缩略语做「编辑」功能：用同一个表单页显示已有数据，提交后把改动写回数据库。</p>
+
+<h2>为什么用 POST 而不是 PUT</h2>
+<p>浏览器原生表单只能发送 <code>GET</code> 和 <code>POST</code> 请求，无法直接发送 <code>PUT</code> 更新请求。因此我们的「编辑」也走 <code>POST</code> 路由，提交后再在服务器端更新模型。</p>
+
+<h2>上下文与路由</h2>
+<p>在 <code>WebsiteController.swift</code> 中定义 <code>EditAcronymContext</code>，相比创建上下文多了一个 <code>acronym</code> 和 <code>editing = true</code> 标记，模板借此区分「新建 / 编辑」状态。</p>
+<pre><code>struct EditAcronymContext: Encodable {
+    let title = "Edit Acronym"
+    let acronym: Acronym
+    let users: Future&lt;[User]&gt;
+    let editing = true
+}</code></pre>
+<p>注册两条路由：显示编辑页用 <code>GET</code>，提交用 <code>POST</code>，两者都带 <code>Acronym.parameter</code> 以定位要编辑的对象。</p>
+<pre><code>router.get("acronyms", Acronym.parameter, "edit", use: editAcronymHandler)
+router.post("acronyms", Acronym.parameter, "edit",  use: editAcronymPostHandler)</code></pre>
+
+<h2>显示编辑页面</h2>
+<p><code>editAcronymHandler</code> 先用 <code>req.parameters.next(Acronym.self)</code> 取出目标缩略语，再用 <code>flatMap(to: View.self)</code> 在拿到结果后查询全部用户，最后渲染与创建页共用的 <code>createAcronym</code> 模板（靠 <code>editing</code> 标记填充旧值）。</p>
+<pre><code>func editAcronymHandler(_ req: Request) throws -> Future&lt;View&gt; {
+    return try req.parameters.next(Acronym.self)
+        .flatMap(to: View.self) { acronym in
+            let context = EditAcronymContext(acronym: acronym, users: User.query(on: req).all())
+            return try req.view().render("createAcronym", context)
+    }
+}</code></pre>
+
+<h2>提交并保存修改</h2>
+<p>提交处理方法用 <code>flatMap(to: Response.self, req.parameters.next(Acronym.self), req.content.decode(Acronym.self))</code> 同时拿到「数据库里的旧对象」和「表单解码出的新数据」，把新值赋给旧对象后保存，再重定向回详情页。</p>
+<pre><code>func editAcronymPostHandler(_ req: Request) throws -> Future&lt;Response&gt; {
+    return try flatMap(to: Response.self,
+                       req.parameters.next(Acronym.self),
+                       req.content.decode(Acronym.self)
+    ) { acronym, data in
+        acronym.short = data.short
+        acronym.long = data.long
+        acronym.userID = data.userID
+
+        return acronym.save(on: req).map(to: Response.self) { savedAcronym in
+            guard let id = savedAcronym.id else {
+                throw Abort(HTTPResponseStatus.internalServerError)
+            }
+            return req.redirect(to: "/acronyms/\(id)")
+        }
+    }
+}</code></pre>
+
+<h2>模板与详情页</h2>
+<p>编辑页复用 <code>createAcronym.leaf</code>，通过 <code>#if(editing)</code> 给输入框填入旧值、下拉框标记选中项，并把按钮文案在 <code>Update</code> 与 <code>Submit</code> 间切换。</p>
+<pre><code>#set("content"){
+    &lt;h1&gt;#(title)&lt;/h1&gt;
+    &lt;form method = "post"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for = "short"&gt;Acronym&lt;/label&gt;
+            &lt;input type="text" name="short" class="form-control" id = "short" #if(editing) { value = "#(acronym.short)" }/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for = "long"&gt;Meaning&lt;/label&gt;
+            &lt;input type="text" name="long" class="form-control" id="long" #if(editing) { value = "#(acronym.long)"}/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="userID"&gt;User&lt;/label&gt;
+            &lt;select name="userID" class="form-control" id="userID"&gt;
+                #for(user in users) {
+                    &lt;option value="#(user.id)" #if(editing){ #if(acronym.userID == user.id) { selected }}&gt;
+                        #(user.name)
+                    &lt;/option&gt;
+                }
+            &lt;/select&gt;
+        &lt;/div&gt;
+        &lt;button type="submit" class = "btn btn-primary"&gt;
+            #if(editing) { Update } else { Submit }
+        &lt;/button&gt;
+    &lt;/form&gt;
+}
+
+#embed("base")</code></pre>
+<p>详情页 <code>acronym.leaf</code> 提供一个指向编辑页的链接。</p>
+<pre><code>#set("content"){
+    &lt;h1&gt;#(acronym.short)&lt;/h1&gt;
+    &lt;h2&gt;#(acronym.long)&lt;/h2&gt;
+    &lt;p&gt;Created by &lt;a href="/users/#(user.id)/"&gt;#(user.name)&lt;/a&gt;&lt;/p&gt;
+    &lt;a class="btn btn-primary" href="/acronyms/#(acronym.id)/edit" role="button"&gt;Edit&lt;/a&gt;
+}
+
+#embed("base")</code></pre>
+<div class="callout">提示：<code>req.content.decode(Acronym.self)</code> 与 <code>req.parameters.next(Acronym.self)</code> 的配合，是 Vapor 3 中「先取旧值、再合并新值」的常见写法。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

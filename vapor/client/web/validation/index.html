@@ -1,0 +1,160 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="在 Vapor 3 中用 Validatable 协议对表单数据做校验，包括单字段规则、自定义校验（两次密码一致）以及页面错误提示。"><title>数据校验 · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-client-web-validation.svg" alt="数据校验 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 9 分钟</time></div><h1>数据校验</h1><p class="article-lead">表单提交的数据不一定靠谱。本文教你用 Vapor 3 的 <code>Validatable</code> 协议校验注册表单：既支持字段级规则，也能自定义「两次密码一致」这样的跨字段校验，并把错误提示回显到页面。</p>
+<h2>一、先做注册页面</h2>
+<p>前面我们已经有了一个能创建缩略语、类别的 Web 应用。现在为它加上用户注册界面。先写注册表单模板 <code>register.leaf</code>：</p>
+<pre><code>#set("content") {
+    &lt;h1&gt;#(title)&lt;/h1&gt;
+    &lt;form method="post"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="name"&gt;Name&lt;/label&gt;
+            &lt;input type="text" name="name" class="form-control"
+            id="name"/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="username"&gt;Username&lt;/label&gt;
+            &lt;input type="text" name="username" class="form-control"
+            id="username"/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="password"&gt;Password&lt;/label&gt;
+            &lt;input type="password" name="password" class="form-control"
+            id="password"/&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="confirmPassword"&gt;Confirm Password&lt;/label&gt;
+            &lt;input type="password" name="confirmPassword"
+            class="form-control" id="confirmPassword"/&gt;
+        &lt;/div&gt;
+        &lt;button type="submit" class="btn btn-primary"&gt;
+            Register
+        &lt;/button&gt;
+    &lt;/form&gt;
+}
+#embed("base")</code></pre>
+<p>注册表单对应的上下文与数据模型如下。注意 <code>RegisterData</code> 遵循 <code>Content</code>，这样可以直接用 <code>req.content.decode</code> 解码请求体：</p>
+<pre><code>struct RegisterContext: Encodable {
+    let title = "Register"
+}
+
+struct RegisterData: Content {
+    let name: String
+    let username: String
+    let password: String
+    let confirmPassword: String
+}</code></pre>
+<p>在 <code>boot(router:)</code> 中注册两个路由：一个显示注册页（GET），一个接收提交（POST）：</p>
+<pre><code>func boot(router: Router) throws {
+        ...
+        authSessionRoutes.get("register", use: registerHandler)
+        authSessionRoutes.post(RegisterData.self, at: "register", use: registerPostHandler)
+        ...
+    }
+
+    ...
+    func registerHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        let context = RegisterContext()
+        return try req.view().render("register", context)
+    }
+    func registerPostHandler(_ req: Request, data: RegisterData) throws -> Future&lt;Response&gt; {
+        let password = try BCrypt.hash(data.password)
+        let user = User(name: data.name, username: data.username, password: password)
+
+        return user.save(on: req).map(to: Response.self) { user in
+            try req.authenticateSession(user)
+            return req.redirect(to: "/")
+        }
+    }</code></pre>
+<p>导航栏模板 <code>base.leaf</code> 里，未登录时才显示 Register 入口：</p>
+<pre><code>...
+        #if(!userLoggedIn) {
+            &lt;li class="nav-item #if(title == "Register"){active}"&gt;
+                &lt;a href="/register" class="nav-link"&gt;Register&lt;/a&gt;
+            &lt;/li&gt;
+        }
+    &lt;/ul&gt;
+...</code></pre>
+<h2>二、注册用户时的数据有效性验证</h2>
+<h3>基本数据有效性验证</h3>
+<p>填写表单时，我们要保证数据符合规则，不符合就提示录入错误。Vapor 3 通过 <code>Validatable</code> 与 <code>Reflectable</code> 协议来声明校验规则：</p>
+<pre><code>extension RegisterData: Validatable, Reflectable {
+    static func validations() throws -> Validations&lt;RegisterData&gt; {
+        var validations = Validations(RegisterData.self)
+        try validations.add(\.name, .ascii)
+        try validations.add(\.username, .alphanumeric &amp;&amp; .count(3...))
+        try validations.add(\.password, .count(8...))
+        return validations
+    }
+}</code></pre>
+<p>然后在处理提交时调用 <code>data.validate()</code>，校验失败就重定向回注册页：</p>
+<pre><code>...
+    func registerPostHandler(_ req: Request, data: RegisterData) throws -> Future&lt;Response&gt; {
+        do {
+            try data.validate()
+        } catch {
+            return req.future(req.redirect(to: "register"))
+        }
+        ...
+    }</code></pre>
+<div class="callout"><strong>说明：</strong><code>.ascii</code>、<code>.alphanumeric</code>、<code>.count(3...)</code> 都是 Vapor 内置的校验器。多个规则之间可以用 <code>&amp;&amp;</code> 组合，比如要求用户名既是字母数字、又至少 3 位。</div>
+<h3>自定义数据有效性验证</h3>
+<p>前面都是针对单个字段的校验，但「两次输入的密码一致」这种跨字段规则 Vapor 没有内建，需要自定义：</p>
+<pre><code>extension RegisterData: Validatable, Reflectable {
+    static func validations() throws -> Validations&lt;RegisterData&gt; {
+        ...
+        validations.add("passwords match", { (model) in
+            guard model.password == model.confirmPassword else {
+                throw BasicValidationError("passwords don't match")
+            }
+        })
+        return validations
+    }
+}</code></pre>
+<h3>注册页面显示错误信息</h3>
+<p>校验完成了，但出错时没有途径通知用户修正，所以要在出错时把错误信息显示在页面上。模板里用 <code>#if(message)</code> 渲染提示框：</p>
+<pre><code>#set("content") {
+    &lt;h1&gt;#(title)&lt;/h1&gt;
+    #if(message) {
+        &lt;div class="alert alert-danger" role="alert"&gt;
+            Please fix the following errors:&lt;br /&gt;
+            #(message)
+        &lt;/div&gt;
+    }
+    ...</code></pre>
+<p>上下文增加可选的 <code>message</code> 字段，并在显示页面时从查询参数里读取：</p>
+<pre><code>struct RegisterContext: Encodable {
+    let title = "Register"
+    let message: String?
+
+    init(message: String? = nil) {
+        self.message = message
+    }
+}
+...
+    func registerHandler(_ req: Request) throws -> Future&lt;View&gt; {
+        let context: RegisterContext
+        if let message = req.query[String.self, at: "message"] {
+            context = RegisterContext(message: message)
+        } else {
+            context = RegisterContext()
+        }
+        ...
+    }</code></pre>
+<p>提交处理函数捕获校验错误，把错误信息 URL 编码后回带到注册页：</p>
+<pre><code> func registerPostHandler(_ req: Request, data: RegisterData) throws -> Future&lt;Response&gt; {
+        do {
+            try data.validate()
+        } catch(let error) {
+            let redirect: String
+            if let error = error as? ValidationError,
+                let message = error.reason.addingPercentEncoding(
+                    withAllowedCharacters: .urlQueryAllowed) {
+                redirect = "/register?message=\(message)"
+            } else {
+                redirect = "/register?message=Unknown+error"
+            }
+            return req.future(req.redirect(to: redirect))
+        }
+        ...
+        }
+    }</code></pre>
+<div class="callout"><strong>小提示：</strong>错误信息要经过 <code>addingPercentEncoding</code> 做 URL 编码再拼进查询串，否则特殊字符（如空格、&amp;）会破坏 URL。</div>
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>

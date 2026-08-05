@@ -1,0 +1,125 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用控制器（RouteCollection / RouteGroup）把零散的 Vapor 路由组织成可维护的模块，并保持 Vapor 3 写法。"><title>控制器与 RouteCollection · Vapor 大型教程 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a class="is-active" href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main article-shell"><article class="el-card article-card"><div class="article-cover"><img class="cover-img" src="/assets/covers/cover-vapor-server-controller.svg" alt="控制器与 RouteCollection 封面"></div><div class="post-topline"><span class="el-tag el-tag--primary">Vapor 大型教程</span><time>2026-08-05 · 约 6 分钟</time></div><h1>控制器与 RouteCollection</h1><p class="article-lead">当项目变大、路由越来越多时，一条条手写 router 会难以维护。本文教你用控制器（Controller）把零散路由组织成独立模块，让代码清晰、好维护。</p>
+
+<h2>为什么要用控制器</h2>
+<p>当项目很大时，我们不能一条条地写 router，因为之后很难进行维护。一般大型项目都要采用一定的设计模式，以确保项目可以有效地进行维护。在 Web 开发中很流行的一种模式就是 MVC，即 Model-View-Controller：以 Web 为例，数据库中的数据结构为模型（Model），给用户展示的 HTML 页面为视图（View），控制着数据展示到页面上的那部分逻辑为控制器（Controller）。</p>
+<p>当工程比较大时，一条条的 Router 组成了请求返回逻辑，处理数据和视图的展示。<strong>使用 Controller 把一条条零散的 Router 组织成独立的模块，有利于划分概念、方便后期维护。</strong>例如针对数据的 CRUD 操作，就可以使用一个控制器组织在一起。</p>
+
+<h2>RouteCollection</h2>
+<p><code>routes.swift</code> 可以大幅简化，把所有路由拆到各自的控制器里：</p>
+<pre><code>import Vapor
+
+/// Register your application's routes here.
+public func routes(_ router: Router) throws {
+
+    let acronymsController = AcronymsController()
+    try router.register(collection: acronymsController)
+}</code></pre>
+<p>分组的所有 routes 都写入控制器中，控制器继承自 <code>RouteCollection</code>：</p>
+<pre><code>import Vapor
+import Fluent
+
+struct AcronymsController: RouteCollection {
+    func boot(router: Router) throws {
+        router.post("api", "acronyms", use: createHandler)
+    }
+
+    func createHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt;
+    {
+        // 这里手动解码为数据模型
+        return try req.content.decode(Acronym.self)
+            .flatMap(to: Acronym.self) { (acronym) in
+                return acronym.save(on: req)
+        }
+    }
+    ...
+}</code></pre>
+
+<h2>RouteGroup</h2>
+<p>上面的方式需要每条 route 都写明自己的全部路径。对于 RESTful 来说，如果控制器中有多条 route，它们的路径有很长一部分是共用的，那么后期如果要同时修改它们前面相同的部分，对维护来说将是灾难。所以有了 RouteGroup 的概念来解决这个问题。</p>
+<pre><code>import Vapor
+import Fluent
+
+struct AcronymsController: RouteCollection {
+    func boot(router: Router) throws {
+        let routeGroup = router.grouped("api", "acronyms")
+
+        routeGroup.post(use: createHandler)
+        routeGroup.get(use: getAllHandler)
+        routeGroup.get(Acronym.parameter, use: getHandler)
+        routeGroup.put(Acronym.parameter, use: updateHandler)
+        routeGroup.delete(Acronym.parameter, use: deleteHandler)
+        routeGroup.get("search", use: searchHandler)
+        routeGroup.get("first", use: firstHandler)
+        routeGroup.get("sorted", use: sortedHandler)
+
+
+    }
+
+    func createHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt;
+    {
+        return try req.content.decode(Acronym.self)
+            .flatMap(to: Acronym.self) { (acronym) in
+                return acronym.save(on: req)
+        }
+    }
+
+    func getAllHandler(_ req: Request) throws -&gt; Future&lt;[Acronym]&gt; {
+        return Acronym.query(on: req).all()
+    }
+
+    func getHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt; {
+        return try req.parameters.next(Acronym.self)
+    }
+
+    func updateHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt; {
+        return try flatMap(to: Acronym.self, req.parameters.next(Acronym.self), req.content.decode(Acronym.self)) { (acronym, updateAcronym) -&gt; Future&lt;Acronym&gt; in
+            acronym.short = updateAcronym.short
+            acronym.long = updateAcronym.long
+
+            return acronym.save(on: req)
+        }
+    }
+
+    func deleteHandler(_ req: Request) throws -&gt; Future&lt;HTTPStatus&gt; {
+        return try req.parameters.next(Acronym.self)
+            .delete(on: req)
+            .transform(to: HTTPStatus.noContent)
+    }
+
+    func searchHandler(_ req: Request) throws -&gt; Future&lt;[Acronym]&gt; {
+        guard let searchItem = req.query[String.self, at: "term"] else {
+            throw Abort(.badRequest)
+        }
+        return Acronym.query(on: req).group(.or) { (or) in
+            or.filter(\.short == searchItem)
+            or.filter(\.long == searchItem)
+            }
+            .all()
+    }
+
+    func firstHandler(_ req: Request) throws -&gt; Future&lt;Acronym&gt; {
+        return Acronym.query(on: req).first().map(to: Acronym.self) { (acronym)  in
+            guard let acronym = acronym else {
+                throw Abort(.notFound)
+            }
+            return acronym
+        }
+    }
+
+    func sortedHandler(_ req: Request) throws -&gt; Future&lt;[Acronym]&gt; {
+        return Acronym.query(on: req).sort(\.short, .ascending).all()
+    }
+}</code></pre>
+
+<h2>让 Vapor 自动解码请求体</h2>
+<p>另外，还可以改进一个 route 的使用方式：我们不用手动解码请求参数，以 <code>createHandler</code> 为例，在注册 route 时指明要解码的类型即可：</p>
+<pre><code>...
+routeGroup.post(Acronym.self,use: createHandler)
+...
+
+func createHandler(_ req: Request, acronym: Acronym) throws -&gt; Future&lt;Acronym&gt; {
+    return acronym.save(on: req)
+}</code></pre>
+<div class="callout">提示：在 route 上直接声明 <code>Acronym.self</code>，Vapor 会在调用 handler 前自动完成解码，handler 的第二个参数直接拿到已解码好的模型，省去手动 <code>req.content.decode</code> 的步骤。</div>
+
+<hr><h2>本系列其他文章</h2><ul><li><a href="/vapor/server/">← Vapor 服务端系列目录</a></li><li><a href="/vapor/client/web/">Vapor 网页前端系列目录</a></li><li><a href="/vapor/client/mobile/">Vapor 移动端</a></li><li><a href="/vapor/">Vapor 系列总览</a></li></ul></article></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/vapor/">← 返回 Vapor 系列</a><span>© 2024 hy123-pixel</span></footer><script src="/scripts/metrics.js"></script></body></html>
