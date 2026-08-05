@@ -1,16 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#b8d9cc"/>
-      <stop offset="0.5" stop-color="#78b9c5"/>
-      <stop offset="1" stop-color="#a9a1dc"/>
-    </linearGradient>
-  </defs>
-  <rect width="800" height="420" fill="url(#g)"/>
-  <circle cx="660" cy="50" r="150" fill="#ffffff" opacity="0.10"/>
-  <circle cx="90" cy="410" r="180" fill="#ffffff" opacity="0.08"/>
-  <circle cx="430" cy="250" r="90" fill="#ffffff" opacity="0.06"/>
-  <text x="52" y="292" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#ffffff" opacity="0.85" letter-spacing="3">RAG</text>
-<text x="52" y="338" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="1">RAG 不是魔法：检索</text>
-<text x="52" y="382" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="1">增强生成的工程实践</text>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(120 .5 .5)">
+    <stop offset="0" stop-color="#2563eb"/>
+    <stop offset="1" stop-color="#0d9488"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.5" cy="0.32" r="0.7">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="800" height="420" fill="url(#bg)"/>
+<rect width="800" height="420" fill="url(#glow)"/>
+<circle cx="690" cy="70" r="150" fill="#ffffff" opacity="0.06"/>
+<circle cx="120" cy="380" r="170" fill="#ffffff" opacity="0.05"/>
+<path d="M340 160 a60 22 0 0 0 120 0" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/><path d="M340 160 v110 a60 22 0 0 0 120 0 v-110" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/><path d="M340 205 a60 22 0 0 0 120 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><path d="M340 250 a60 22 0 0 0 120 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><circle cx="480" cy="250" r="26" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.9"/><path d="M500 270 L520 292" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/><rect x="360" y="120" width="46" height="56" rx="6" fill="#ffffff" opacity="0.7"/>
+<text x="400" y="392" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#ffffff" opacity="0.82" letter-spacing="4">检索增强 RAG</text>
 </svg>

@@ -1,17 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6f7fe2"/>
-      <stop offset="0.5" stop-color="#9c8be7"/>
-      <stop offset="1" stop-color="#dca1c5"/>
-    </linearGradient>
-  </defs>
-  <rect width="800" height="420" fill="url(#g)"/>
-  <circle cx="660" cy="50" r="150" fill="#ffffff" opacity="0.10"/>
-  <circle cx="90" cy="410" r="180" fill="#ffffff" opacity="0.08"/>
-  <circle cx="430" cy="250" r="90" fill="#ffffff" opacity="0.06"/>
-  <text x="52" y="292" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#ffffff" opacity="0.85" letter-spacing="3">模型选型</text>
-<text x="52" y="318" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="30" font-weight="700" fill="#ffffff" letter-spacing="1">主流 AI 模型怎么选</text>
-<text x="52" y="356" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="30" font-weight="700" fill="#ffffff" letter-spacing="1">：能力、价格与工作场景</text>
-<text x="52" y="394" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="30" font-weight="700" fill="#ffffff" letter-spacing="1">对比</text>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(120 .5 .5)">
+    <stop offset="0" stop-color="#fb7185"/>
+    <stop offset="1" stop-color="#f59e0b"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.5" cy="0.32" r="0.7">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="800" height="420" fill="url(#bg)"/>
+<rect width="800" height="420" fill="url(#glow)"/>
+<circle cx="690" cy="70" r="150" fill="#ffffff" opacity="0.06"/>
+<circle cx="120" cy="380" r="170" fill="#ffffff" opacity="0.05"/>
+<rect x="270" y="150" width="80" height="130" rx="12" fill="#ffffff" opacity="0.6"/><circle cx="310" cy="195" r="22" fill="#ffffff" opacity="0.9"/><path d="M288 240 h44" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><path d="M288 258 h30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><rect x="360" y="150" width="80" height="130" rx="12" fill="#ffffff" opacity="0.7"/><circle cx="400" cy="195" r="22" fill="#ffffff" opacity="0.9"/><path d="M378 240 h44" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><path d="M378 258 h30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><rect x="450" y="150" width="80" height="130" rx="12" fill="#ffffff" opacity="0.8"/><circle cx="490" cy="195" r="22" fill="#ffffff" opacity="0.9"/><path d="M468 240 h44" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><path d="M468 258 h30" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><text x="400" y="320" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="30" font-weight="700" fill="#ffffff" opacity="0.9">VS</text>
+<text x="400" y="392" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#ffffff" opacity="0.82" letter-spacing="4">模型选型</text>
 </svg>

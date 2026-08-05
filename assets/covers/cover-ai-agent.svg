@@ -1,16 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f6d59d"/>
-      <stop offset="0.5" stop-color="#ecb0a2"/>
-      <stop offset="1" stop-color="#9ab9df"/>
-    </linearGradient>
-  </defs>
-  <rect width="800" height="420" fill="url(#g)"/>
-  <circle cx="660" cy="50" r="150" fill="#ffffff" opacity="0.10"/>
-  <circle cx="90" cy="410" r="180" fill="#ffffff" opacity="0.08"/>
-  <circle cx="430" cy="250" r="90" fill="#ffffff" opacity="0.06"/>
-  <text x="52" y="292" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#ffffff" opacity="0.85" letter-spacing="3">Agent</text>
-<text x="52" y="338" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="1">AI Agent 的最</text>
-<text x="52" y="382" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="1">小闭环</text>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(120 .5 .5)">
+    <stop offset="0" stop-color="#6366f1"/>
+    <stop offset="1" stop-color="#8b5cf6"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.5" cy="0.32" r="0.7">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="800" height="420" fill="url(#bg)"/>
+<rect width="800" height="420" fill="url(#glow)"/>
+<circle cx="690" cy="70" r="150" fill="#ffffff" opacity="0.06"/>
+<circle cx="120" cy="380" r="170" fill="#ffffff" opacity="0.05"/>
+<circle cx="400" cy="200" r="46" fill="#ffffff" opacity="0.95"/><path d="M380 188 q20 -22 40 0 M378 206 q22 -20 44 0 M384 222 q16 -16 32 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><circle cx="250" cy="130" r="26" fill="#ffffff" opacity="0.85"/><path d="M250 130 L400 200" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/><circle cx="550" cy="130" r="26" fill="#ffffff" opacity="0.85"/><path d="M550 130 L400 200" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/><circle cx="250" cy="280" r="26" fill="#ffffff" opacity="0.85"/><path d="M250 280 L400 200" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/><circle cx="550" cy="280" r="26" fill="#ffffff" opacity="0.85"/><path d="M550 280 L400 200" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/><path d="M400 200 L370 215" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+<text x="400" y="392" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#ffffff" opacity="0.82" letter-spacing="4">AI 智能体</text>
 </svg>
