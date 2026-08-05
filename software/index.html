@@ -1,0 +1,63 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="hy123-pixel 亲自使用并推荐的软件合集，含图标、简介、官网与下载地址。"><title>软件推荐 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css"></head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">软件推荐</a><a href="/about/">关于</a></nav></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>软件推荐</h1><p>这里收录我亲自用过、愿意长期留在电脑里的工具。每张卡片都标注了图标、简介、官网与下载入口，方便你按需取用。持续更新中。</p><span class="el-tag el-tag--success">持续更新中</span></section><section class="software-grid" id="softwareGrid" aria-label="推荐软件列表"></section><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><a href="/">← 返回首页</a><span>© 2024 hy123-pixel</span></footer><script>
+  /* =========================================================
+     软件数据：在此数组中添加 / 修改推荐软件即可，页面会自动渲染。
+     字段说明：
+       name     软件名称（必填）
+       icon     图标：emoji（如 "🧩"）或图片地址（以 http/https/ 或 / 开头）
+       color    图标底色（emoji 模式下使用，可选）
+       tag      分类标签（可选）
+       desc     软件介绍（必填）
+       site     官网地址（可选；留空则不显示「官网」按钮）
+       download 下载地址（可选；留空则不显示「下载」按钮）
+     ========================================================= */
+  const SOFTWARE = [
+    {
+      name: "TMOG",
+      icon: "🧩",
+      color: "#6d7cf4",
+      tag: "AI 工具",
+      desc: "TMOG 是一个 AI 工具集合站点（当前处于 Beta 阶段），汇集了多种实用能力与在线体验。点击官网可访问其最新功能与更新。",
+      site: "https://tmog.org/#beta",
+      download: ""
+    }
+    // 在上方逗号后继续添加更多软件，例如：
+    // ,
+    // {
+    //   name: "示例软件",
+    //   icon: "🚀",
+    //   color: "#67c23a",
+    //   tag: "效率",
+    //   desc: "在这里写一句话介绍。",
+    //   site: "https://example.com",
+    //   download: "https://example.com/download"
+    // }
+  ];
+
+  const esc = s => String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+  function iconHtml(s) {
+    if (!s.icon) return "";
+    if (/^(https?:|\/)/.test(s.icon)) {
+      return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + '"><img src="' + esc(s.icon) + '" alt="' + esc(s.name) + ' 图标"></span>';
+    }
+    return '<span class="software-icon" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#6d7cf4") + '">' + esc(s.icon) + '</span>';
+  }
+
+  function cardHtml(s) {
+    const actions = [];
+    if (s.site) actions.push('<a class="el-button el-button--primary" href="' + esc(s.site) + '" target="_blank" rel="noopener">官网</a>');
+    if (s.download) actions.push('<a class="el-button" href="' + esc(s.download) + '" target="_blank" rel="noopener">下载</a>');
+    return '<article class="el-card software-card">'
+      + '<div class="software-top">' + iconHtml(s)
+      + '<div class="software-head"><h3>' + esc(s.name) + '</h3>'
+      + (s.tag ? '<span class="el-tag el-tag--primary">' + esc(s.tag) + '</span>' : '')
+      + '</div></div>'
+      + '<p class="software-desc">' + esc(s.desc) + '</p>'
+      + (actions.length ? '<div class="software-actions">' + actions.join("") + '</div>' : "")
+      + '</article>';
+  }
+
+  document.getElementById("softwareGrid").innerHTML = SOFTWARE.map(cardHtml).join("");
+</script><script src="/scripts/metrics.js"></script></body></html>
