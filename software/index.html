@@ -5,8 +5,32 @@
   .software-modal-shots img { width: 100%; height: 168px; object-fit: cover; display: block; border-radius: 10px; border: 1px solid #f0efff; background: #f7f8fa; }
   .software-modal-shots figcaption { padding-top: 7px; color: #8a8999; font-size: 12px; text-align: center; }
   @media (max-width: 560px) { .software-modal-shots { grid-template-columns: 1fr; } .software-modal-shots img { height: 200px; } }
+
+  /* 分类侧边栏 */
+  .software-layout { display: flex; gap: 28px; align-items: flex-start; margin-top: 6px; }
+  .software-sidebar { flex: 0 0 224px; position: sticky; top: 84px; align-self: flex-start; }
+  .software-sidebar-inner { background: #fff; border: 1px solid #f0efff; border-radius: 14px; padding: 16px 12px; box-shadow: 0 1px 2px rgba(20,20,40,.04); }
+  .software-sidebar h2 { font-size: 12px; color: #8a8999; letter-spacing: .08em; margin: 0 8px 12px; font-weight: 700; text-transform: uppercase; }
+  .cat-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+  .cat-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; cursor: pointer; color: #2b2b3a; font-size: 14px; border: 1px solid transparent; transition: background .15s, color .15s; user-select: none; }
+  .cat-item:hover { background: #f5f4ff; }
+  .cat-item.is-active { background: #6d7cf4; color: #fff; box-shadow: 0 4px 12px rgba(109,124,244,.28); }
+  .cat-item .cat-emoji { width: 20px; text-align: center; font-size: 15px; }
+  .cat-item .cat-name { flex: 1; white-space: nowrap; }
+  .cat-item .cat-count { font-size: 12px; color: #9a99ad; background: #f1f0fb; border-radius: 20px; padding: 1px 9px; }
+  .cat-item.is-active .cat-count { background: rgba(255,255,255,.22); color: #fff; }
+  .software-sidebar-note { margin: 14px 8px 0; font-size: 12px; color: #a7a6b8; line-height: 1.6; }
+
+  @media (max-width: 940px) {
+    .software-layout { flex-direction: column; }
+    .software-sidebar { position: static; flex: none; width: 100%; top: auto; }
+    .software-sidebar-inner { padding: 12px; }
+    .cat-list { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+    .cat-item { flex: 0 0 auto; }
+    .software-sidebar-note { display: none; }
+  }
 </style>
-</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu" aria-label="主导航"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">资源推荐</a><a href="/libs/">开发库指南</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>资源推荐</h1><p>这里收录一些值得关注的软件，方便快速查找与了解。点击任意卡片可查看完整介绍、版本、评分与官网预览。</p></section><section class="software-grid" id="softwareList" aria-label="推荐软件列表"></section></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><span>© 2026 hy123-pixel</span><span>Built with HTML &amp; CSS · No external runtime</span></footer>
+</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">hy</span><span>hy123-pixel</span></a><nav class="el-menu site-menu" aria-label="主导航"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a class="is-active" href="/software/">资源推荐</a><a href="/libs/">开发库指南</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">SOFTWARE PICKS</p><h1>资源推荐</h1><p>这里收录一些值得关注的软件，方便快速查找与了解。点击任意卡片可查看完整介绍、版本、评分与官网预览。</p></section><div class="software-layout"><aside class="software-sidebar" id="softwareSidebar" aria-label="分类导航"></aside><section class="software-grid" id="softwareList" aria-label="推荐软件列表"></section></div></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><span>© 2026 hy123-pixel</span><span>Built with HTML &amp; CSS · No external runtime</span></footer>
 
 <div id="softwareModal" class="software-modal" role="dialog" aria-modal="true" aria-labelledby="swModalTitle" hidden>
   <div class="software-modal-backdrop" data-close></div>
@@ -999,16 +1023,82 @@
       + '</article>';
   }
 
-  document.getElementById("softwareList").innerHTML = SOFTWARE.map(cardHtml).join("");
+  // ---------- 分类侧边栏 ----------
+  // 把每个条目的 tag 一级分类（"X · Y" 的 X）归并到更粗的顶层类别
+  const CATEGORIES = [
+    { key: "ai",    name: "AI 工具",     emoji: "🤖", match: ["AI 工具", "AI 导航", "AI 客户端"] },
+    { key: "dev",   name: "开发 / 服务端", emoji: "💻", match: ["开发工具", "前端模板", "框架官网", "开发团队", "在线模拟器", "开发平台"] },
+    { key: "learn", name: "教程 / 学习",  emoji: "📚", match: ["教程", "开发教程", "知识指南"] },
+    { key: "design",name: "设计 / 素材",  emoji: "🎨", match: ["图片工具", "图片素材", "设计资源", "设计工具"] },
+    { key: "media", name: "视频 / 内容",  emoji: "🎬", match: ["视频工具", "内容工具", "下载工具"] },
+    { key: "util",  name: "效率 / 实用",  emoji: "🧰", match: ["效率工具", "实用工具", "二维码工具", "计算工具", "外设工具", "显示测试", "NFC 工具", "趣味工具"] },
+    { key: "data",  name: "数据 / 营销",  emoji: "📊", match: ["数据工具", "数据营销", "数据服务"] },
+    { key: "nav",   name: "导航 / 社区",  emoji: "🧭", match: ["导航站", "社区论坛"] },
+    { key: "life",  name: "系统 / 生活",  emoji: "🛠️", match: ["系统工具", "支付工具", "证件工具", "医疗参考", "游戏资源"] }
+  ];
 
-  document.querySelectorAll("#softwareList .software-card-icon img").forEach(function (img) {
-    img.addEventListener("error", function () {
-      var fb = document.createElement("span");
-      fb.textContent = img.dataset.fb || "?";
-      fb.style.cssText = "font-size:22px;font-weight:700;color:" + (img.dataset.fbcolor || "#6d7cf4");
-      img.replaceWith(fb);
+  function catOf(tag) {
+    const first = String(tag || "").split(" · ")[0];
+    const c = CATEGORIES.find(function (x) { return x.match.indexOf(first) !== -1; });
+    return c ? c.key : "other";
+  }
+
+  let activeCat = "all";
+
+  function catItem(key, name, emoji, count, active) {
+    return '<li class="cat-item' + (active ? ' is-active' : '') + '" data-cat="' + key + '">'
+      + '<span class="cat-emoji">' + emoji + '</span>'
+      + '<span class="cat-name">' + name + '</span>'
+      + '<span class="cat-count">' + count + '</span></li>';
+  }
+
+  function renderSidebar() {
+    const counts = {};
+    SOFTWARE.forEach(function (s) {
+      const k = catOf(s.tag);
+      counts[k] = (counts[k] || 0) + 1;
     });
-  });
+    let html = '<div class="software-sidebar-inner"><h2>分类</h2><ul class="cat-list">';
+    html += catItem("all", "全部", "🗂️", SOFTWARE.length, activeCat === "all");
+    CATEGORIES.forEach(function (c) {
+      html += catItem(c.key, c.name, c.emoji, counts[c.key] || 0, activeCat === c.key);
+    });
+    html += '</ul><p class="software-sidebar-note">共 ' + SOFTWARE.length + ' 个资源，按用途归为 9 类，点击可筛选。</p></div>';
+    document.getElementById("softwareSidebar").innerHTML = html;
+
+    document.querySelectorAll("#softwareSidebar .cat-item").forEach(function (el) {
+      el.addEventListener("click", function () {
+        activeCat = el.dataset.cat;
+        renderSidebar();
+        renderGrid();
+      });
+    });
+  }
+
+  function bindCardIcons() {
+    document.querySelectorAll("#softwareList .software-card-icon img").forEach(function (img) {
+      img.addEventListener("error", function () {
+        var fb = document.createElement("span");
+        fb.textContent = img.dataset.fb || "?";
+        fb.style.cssText = "font-size:22px;font-weight:700;color:" + (img.dataset.fbcolor || "#6d7cf4");
+        img.replaceWith(fb);
+      });
+    });
+  }
+
+  function renderGrid() {
+    const list = SOFTWARE.map(function (s, i) { return { s: s, i: i }; });
+    const filtered = activeCat === "all"
+      ? list
+      : list.filter(function (o) { return catOf(o.s.tag) === activeCat; });
+    document.getElementById("softwareList").innerHTML = filtered.map(function (o) {
+      return cardHtml(o.s, o.i);
+    }).join("");
+    bindCardIcons();
+  }
+
+  renderSidebar();
+  renderGrid();
 
   const modal = document.getElementById("softwareModal");
   const body = document.body;
