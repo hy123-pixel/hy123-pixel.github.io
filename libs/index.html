@@ -1,0 +1,346 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="开发库指南：收藏与速查开发库，快速理解每个库的功能、技术栈、平台与安装方式。"><title>开发库指南 · hy123-pixel</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/styles/main.css">
+<style>
+  /* 开发库指南：在软件推荐样式基础上，强化「技术栈 / 功能 / 速查」 */
+  .lib-toolbar { display: flex; align-items: center; gap: 12px; margin: 4px 0 22px; flex-wrap: wrap; }
+  .lib-search { box-sizing: border-box; flex: 1 1 320px; min-height: 40px; padding: 0 14px; border: 1px solid #deddea; border-radius: 8px; background: #fcfcfe; color: #454555; font: 14px/1.6 inherit; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .lib-search:focus { border-color: #8d97f7; box-shadow: 0 0 0 3px rgba(109,124,244,.12); }
+  .lib-count { color: #8a8999; font-size: 13px; white-space: nowrap; }
+  .lib-card-stack { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+  .lib-card-stack span { padding: 3px 9px; border: 1px solid #e7e5f6; border-radius: 999px; background: #f7f6ff; color: #6b6a8c; font-size: 11px; line-height: 1.5; }
+  .software-card-desc { -webkit-line-clamp: 2; }
+  .lib-block { margin-bottom: 22px; }
+  .lib-block-title { margin: 0 0 10px; color: var(--el-text); font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+  .lib-block-title::before { content: ""; display: inline-block; width: 3px; height: 13px; margin-right: 8px; border-radius: 2px; background: var(--el-blue); vertical-align: -1px; }
+  .lib-function { margin: 0; color: #505162; font-size: 14px; line-height: 1.85; }
+  .lib-stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lib-stack span { padding: 5px 12px; border: 1px solid #d9d9fb; border-radius: 999px; background: #f2f1ff; color: #6571d9; font-size: 12px; font-weight: 600; }
+  .lib-code { margin: 0; overflow-x: auto; border-radius: 8px; background: #1f2937; }
+  .lib-code code { display: block; padding: 16px 18px; color: #e5e7eb; font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; }
+  /* 弹窗统计自适应列数，容纳更多字段 */
+  .software-modal-stats { grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+  @media (max-width: 560px) { .software-modal-stats { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head><body class="element-theme"><header class="el-header site-header"><div class="site-header-inner"><a class="brand" href="/"><span class="brand-mark">AI</span><span>hy123-pixel</span></a><nav class="el-menu site-menu" aria-label="主导航"><a href="/">首页</a><a href="/archives/">文章</a><a href="/tags/">标签</a><a href="/tools/">工具</a><a href="/software/">资源推荐</a><a class="is-active" href="/libs/">开发库指南</a><a href="/about/">关于</a></nav><a class="el-button el-button--text header-rss" href="/atom.xml">RSS</a></div></header><main class="el-main page-shell tools-shell"><section class="tools-hero"><p class="eyebrow">DEV LIBRARY GUIDE</p><h1>开发库指南</h1><p>这里收藏一些值得关注的开发库，方便后续快速查找。每张卡片标出功能与技术栈，点开可看详细说明、安装方式与仓库。需要什么能力，先来这里快速查一下。</p></section><section class="lib-toolbar"><input class="lib-search" id="libSearch" type="search" placeholder="搜索库名、功能或技术栈，如 Swift、XML、爬虫、解析…" aria-label="搜索开发库"><span class="lib-count" id="libCount"></span></section><section class="software-grid" id="libList" aria-label="开发库列表"></section></main><footer class="site-footer-new"><div class="footer-metrics"><span>访问 <strong data-metric-total>—</strong></span><span>运行 <strong data-metric-days>—</strong> 天</span></div><span>© 2026 hy123-pixel</span><span>Built with HTML &amp; CSS · No external runtime</span></footer>
+
+<div id="libModal" class="software-modal" role="dialog" aria-modal="true" aria-labelledby="libModalTitle" hidden>
+  <div class="software-modal-backdrop" data-close></div>
+  <div class="software-modal-panel">
+    <button type="button" class="software-modal-close" data-close aria-label="关闭">×</button>
+    <div class="software-modal-head">
+      <span class="software-modal-icon" id="libModalIcon"></span>
+      <div class="software-modal-meta"><h2 id="libModalTitle"></h2><span class="el-tag el-tag--primary" id="libModalTag"></span></div>
+    </div>
+    <div class="software-modal-body">
+      <p class="software-modal-desc" id="libModalDesc"></p>
+      <div class="lib-block"><h4 class="lib-block-title">功能</h4><p class="lib-function" id="libModalFunction"></p></div>
+      <div class="lib-block"><h4 class="lib-block-title">技术栈</h4><div class="lib-stack" id="libModalStack"></div></div>
+      <div class="lib-block" id="libModalCodeWrap"><h4 class="lib-block-title">使用示例</h4><pre class="lib-code"><code id="libModalCode"></code></pre></div>
+      <div class="software-modal-stats" id="libModalStats"></div>
+      <div class="software-modal-actions" id="libModalActions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* 在数组顶部追加新库即可。字段说明：
+     name     库名
+     icon     图标（图片 URL 或留空用首字母兜底）
+     color/text 图标底色 / 文字色
+     tag      分类标签（一句话定位，如「Swift · XML/HTML 解析」）
+     desc     卡片上的一句话功能简介
+     function 弹窗里的功能详解
+     stack    技术栈，用「 · 」分隔，会拆成标签展示
+     language/platform/license/install/stars 统计信息
+     repo     代码仓库地址（GitHub 等）
+     docs     文档地址（可选）
+     code     使用示例代码（可选） */
+  const LIBS = [
+    {
+      name: "Kanna",
+      icon: "https://github.com/tid-kijyun.png",
+      color: "#f57c00",
+      text: "#ffffff",
+      tag: "Swift · XML / HTML 解析",
+      desc: "Swift 版 Nokogiri，跨平台 XML / HTML 解析库，用 XPath 与 CSS 选择器抽取网页数据，适合爬虫与内容抽取。",
+      function: "Kanna（鉋）是一个跨平台（macOS / iOS / tvOS / watchOS / Linux）的 XML / HTML 解析库，灵感来自 Ruby 的 Nokogiri。它能把 HTML / XML 字符串或文档解析成可查询的对象，支持 XPath 1.0 与 CSS3 选择器两种定位方式，并支持命名空间。常见用途：抓取网页、抽取结构化数据、解析 RSS / 配置文件、在服务端做 HTML 清洗。底层基于 libxml2，性能稳定、依赖轻。",
+      stack: "Swift · libxml2 · XPath 1.0 · CSS3 Selector · Nokogiri 风格 API",
+      language: "Swift",
+      platform: "macOS / iOS / tvOS / watchOS / Linux",
+      license: "MIT",
+      install: "SPM / CocoaPods / Carthage",
+      stars: "2.4k+",
+      repo: "https://github.com/tid-kijyun/Kanna",
+      docs: "http://tid-kijyun.github.io/Kanna/",
+      code:
+`import Kanna
+
+let html = "<html>...</html>"
+if let doc = try? HTML(html: html, encoding: .utf8) {
+    // 用 CSS 选择器提取节点
+    for link in doc.css("a, link") {
+        print(link.text, link["href"])
+    }
+    // 用 XPath 提取节点
+    for node in doc.xpath("//a | //link") {
+        print(node.text)
+    }
+}`
+    },
+    {
+      name: "Dollar",
+      icon: "https://github.com/ankurp.png",
+      color: "#4a6cf7",
+      text: "#ffffff",
+      tag: "Swift · 函数式工具库",
+      desc: "Swift 版 Lo-Dash / Underscore，纯函数式的数组、字典与函数工具集（curry、memoize、compose 等），不污染内置类型，适合写更简洁的函数式代码。",
+      function: "Dollar 是一个为 Swift 提供函数式编程辅助的工具库，常被比作 JavaScript 的 Lo-Dash / Underscore.js。它不通过 extension 扩展任何内置类型，全部以纯静态方法调用（如 Dollar.map、Dollar.chain），覆盖数组（chunk、flatten、groupBy、uniq、zip…）、字典（merge、pick、omit…）、对象（tap）与函数式辅助（curry、memoize、compose、partial、once、times…），并支持 Dollar.chain(...) 链式调用。纯 Swift 标准库实现，无第三方运行时依赖；配套的 Cent 库则通过 extension 为 Array / String / Int / Date 等类型加方法，二者互补。注意从 Swift 4 起 $ 不再是合法标识符，统一用 Dollar 调用。",
+      stack: "Swift · 函数式编程 · 纯标准库实现 · Lo-Dash 风格 API · 链式调用",
+      language: "Swift",
+      platform: "iOS / macOS / watchOS / tvOS / Linux",
+      license: "MIT",
+      install: "SPM / CocoaPods / Carthage",
+      stars: "4.2k+",
+      repo: "https://github.com/ankurp/Dollar",
+      docs: "",
+      code:
+`import Dollar
+
+let nums = [1, 2, 3, 4, 5]
+let result = Dollar.chain(nums)
+    .map { $0 * 2 }
+    .filter { $0 > 5 }
+    .value()          // [6, 8, 10]
+
+let compacted = Dollar.compact([1, nil, 2, nil, 3])  // [1, 2, 3]`
+    },
+    {
+      name: "FanFanSwift",
+      icon: "https://github.com/geek5nan.png",
+      color: "#e8533f",
+      text: "#ffffff",
+      tag: "Swift · 翻翻看示例项目",
+      desc: "用 Swift 写的「翻翻看」记忆翻牌小游戏示例，作者注明「用于语言学习之用」，适合初学 Swift 时参考界面与交互实现。",
+      function: "FanFanSwift 是一个用 Swift 编写的「翻翻看」记忆翻牌游戏示例项目（翻牌配对玩法）。作者在仓库简介里明确写它是「用于语言学习之用」——即作为 Swift 语言的学习样例，展示如何用 UIKit / Storyboard 搭建界面、响应点击、管理游戏状态与翻牌动画。它并非通用工具库，而是一个可运行的练手项目，适合刚入门 Swift、想看一个完整小游戏如何从零搭起来的同学对照学习。",
+      stack: "Swift · UIKit · Storyboard · 小游戏示例",
+      language: "Swift",
+      platform: "iOS",
+      license: "未声明",
+      install: "Clone / Xcode 打开",
+      stars: "—",
+      repo: "https://github.com/geek5nan/FanFanSwift",
+      docs: "",
+      code: ""
+    },
+    {
+      name: "SwiftNote",
+      icon: "https://github.com/mslathrop.png",
+      color: "#2bb3a3",
+      text: "#ffffff",
+      tag: "Swift · 便签 App 示例",
+      desc: "Swift 写的便签 App 示例，带 Today Widget 与 iCloud 同步，用 Core Data 存储，适合学习 iOS 小组件与 App Group 数据共享。",
+      function: "SwiftNote 是一个用 Swift 编写的便签（Note）应用示例，仓库简介为「Simple note taking app with today widget and iCloud syncing」。它演示了几个 iOS 实战知识点：用 Core Data 持久化笔记、用 Today Widget（通知中心小部件）展示最近笔记、通过 App Group 在 App 与 Widget 之间共享容器里的 SQLite 存储（storeURL 放在 App Group 的共享目录），以及 iCloud 同步的接入思路（README 注明 iCloud 同步当时尚不可用，欢迎 PR）。它并非通用工具库，而是一个可运行的 iOS 练手项目，适合想学 Widget + Core Data + App Group 协作的同学对照。",
+      stack: "Swift · UIKit · Core Data · Today Widget · App Group",
+      language: "Swift",
+      platform: "iOS",
+      license: "未声明",
+      install: "Clone / Xcode 打开",
+      stars: "—",
+      repo: "https://github.com/mslathrop/SwiftNote",
+      docs: "",
+      code:
+`// App 与 Today Widget 通过 App Group 共享 Core Data 存储
+var storeURL = NSFileManager.defaultManager()
+    .containerURLForSecurityApplicationGroupIdentifier(kAppGroupIdentifier)
+storeURL = storeURL.URLByAppendingPathComponent("SwiftNote.sqlite")`
+    },
+    {
+      name: "Swift 月度热门榜",
+      icon: "https://github.com/favicon.ico",
+      color: "#24292f",
+      text: "#ffffff",
+      tag: "Swift · 发现源 / 书签",
+      desc: "GitHub Swift 月度热门仓库榜单（按 star 增量排序），当作书签收藏，方便随时点开发现本月值得关注的 Swift 项目。",
+      function: "这是 GitHub 的 Swift 语言「Trending（热门）」榜单，按最近一个月的 star 增量对仓库排序，用来发现当下活跃的 Swift 项目——既有可复用的库，也有练手示例与新晋框架。它本身是一个动态列表（每月更新），不是单个库，这里当作「发现源书签」收藏，点开即可直接跳转榜单筛选页，省得每次手拼 URL。",
+      stack: "Swift · GitHub Trending · 动态榜单（每月更新）",
+      language: "Swift",
+      platform: "Web / GitHub",
+      license: "—",
+      install: "浏览器打开",
+      stars: "—",
+      repo: "https://github.com/trending?l=swift&since=monthly",
+      docs: "",
+      code: ""
+    },
+    {
+      name: "boomb",
+      icon: "https://github.com/liuzi6612.png",
+      color: "#7048e8",
+      text: "#ffffff",
+      tag: "GitHub 图床 · Web 工具",
+      desc: "基于 GitHub 的图床 / 图库管理工具，免部署、开箱即用，支持拖拽与粘贴上传、多 CDN 加速，把 GitHub 仓库当图床用。",
+      function: "boomb 是一个基于 GitHub 的图床（图片存储）管理工具，仓库简介为「Manage your pictures easily for Github · 基于 Github 轻松管理您的存储图库」。它通过 GitHub OAuth2 登录后，可拖拽或粘贴上传图片、在线新建文本文件、把仓库当文件分享用，并借助多个 CDN 加速访问，主打「无需部署、开箱即用、用完即走」。技术栈为 Vue3 + Element Plus + TypeScript（Vite 构建、pnpm 管理），是纯前端项目，可一键部署到 Netlify 等静态托管，也可自托管；在线版见 https://boomb2.netlify.app。",
+      stack: "Vue3 · Element Plus · TypeScript · Vite · GitHub OAuth2",
+      language: "TypeScript / Vue3",
+      platform: "Web（可部署到 Netlify / 自托管）",
+      license: "未声明",
+      install: "在线用 / pnpm 自托管",
+      stars: "—",
+      repo: "https://github.com/liuzi6612/boomb",
+      docs: "",
+      code: ""
+    },
+    {
+      name: "RikkaHub",
+      icon: "https://github.com/rikkahub.png",
+      color: "#2e7d32",
+      text: "#ffffff",
+      tag: "Android · 多模型 LLM 客户端",
+      desc: "支持多家大模型提供商的 Android 客户端，统一接入不同 LLM，免在不同 App 间切换；Material 3 界面，AGPL-3.0 开源。",
+      function: "RikkaHub 是一款支持多种大语言模型（LLM）提供商的 Android 应用，仓库简介为「RikkaHub is an Android APP that supports for multiple LLM providers」。它把不同 LLM 服务聚合到一个统一界面，避免用户在多个提供商 App 之间来回切换；支持持续新增模型定义（如 mimo v3），并提供助手上下文阶梯式截断、每助手独立网络搜索开关、MCP 服务器配置（API Key 可显隐）等能力。技术栈以 Kotlin 为主（Gradle / AGP / Kotlin 2.3），UI 用 Material 3 动态配色，部分前端模块用 Web 技术（Bun / TypeScript）；以 AGPL-3.0 开源。它属于面向终端用户的应用，非可复用库，适合想找一个开源、自托管友好的安卓 AI 客户端的用户收藏对照。",
+      stack: "Kotlin · Android · Material 3 · Gradle · 多 LLM 聚合",
+      language: "Kotlin / Android",
+      platform: "Android（含 Web 配套模块）",
+      license: "AGPL-3.0",
+      install: "APK / Release 下载",
+      stars: "—",
+      repo: "https://github.com/rikkahub/rikkahub",
+      docs: "",
+      code: ""
+    },
+    {
+      name: "FsTTY",
+      icon: "https://github.com/359956085.png",
+      color: "#e03131",
+      text: "#ffffff",
+      tag: "Windows · SSH 客户端 + MCP 服务器",
+      desc: "Windows 上的 SSH 客户端，同时充当 MCP 服务器，把已保存的 SSH 会话安全地开放给 Codex / Claude / Cursor 等 Agent，按最小权限调用工具。",
+      function: "FsTTY 是一个 Windows SSH 客户端，同时内置 MCP 服务器：它把本机已保存的 SSH 会话安全地开放给 Codex、Claude、Cursor 等 AI 编程 Agent，Agent 不接触密码和私钥，只能在用户授权的会话分组中调用明确的工具（状态读取、文件读取、命令执行、编辑、删除等共 16 个 MCP 工具）。主打最小权限与可审计：按会话分组分别控制访问，权限修改即时生效，独立记录工具 / 会话 / 结果 / 耗时审计日志。终端用 xterm.js，文件管理走 SFTP，凭据存系统凭据库。技术栈为 Tauri 2（Rust + 前端），MIT 开源，当前仅发布 Windows x64 安装包（setup.exe / msi）。它属于面向开发者的桌面工具，非可复用库。",
+      stack: "Tauri 2 · Rust · xterm.js · SFTP · MCP · Windows",
+      language: "Rust / TypeScript",
+      platform: "Windows x64",
+      license: "MIT",
+      install: "GitHub Releases 下载",
+      stars: "—",
+      repo: "https://github.com/359956085/FsTTY",
+      docs: "",
+      code: ""
+    }
+  ];
+
+  const esc = s => String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+  function iconHtml(s, cls = "software-icon") {
+    if (!s.icon) return '<span class="' + cls + '" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#f57c00") + '">' + esc((s.name || "?").charAt(0)) + '</span>';
+    if (/^(https?:|\/)/.test(s.icon)) {
+      return '<span class="' + cls + '" style="background:' + (s.color || "#f0efff") + '"><img src="' + esc(s.icon) + '" alt="' + esc(s.name) + ' 图标" data-fb="' + esc((s.name || "?").charAt(0)) + '" data-fbcolor="' + esc(s.text || "#f57c00") + '"></span>';
+    }
+    return '<span class="' + cls + '" style="background:' + (s.color || "#f0efff") + ';color:' + (s.text || "#f57c00") + '">' + esc(s.icon) + '</span>';
+  }
+
+  function stackChips(stack) {
+    return String(stack || "").split("·").map(x => x.trim()).filter(Boolean)
+      .map(x => '<span>' + esc(x) + '</span>').join("");
+  }
+
+  function cardHtml(s, idx) {
+    const search = [s.name, s.tag, s.desc, s.function, s.stack, s.language, s.platform].join(" ");
+    return '<article class="el-card software-card" data-index="' + idx + '" data-search="' + esc(search) + '" tabindex="0" role="button" aria-haspopup="dialog">'
+      + '<div class="software-card-top">'
+      + iconHtml(s, "software-card-icon")
+      + '<div class="software-card-head"><h3>' + esc(s.name) + '</h3>' + (s.tag ? '<span class="el-tag el-tag--primary">' + esc(s.tag) + '</span>' : '') + '</div>'
+      + '</div>'
+      + '<p class="software-card-desc">' + esc(s.desc) + '</p>'
+      + '<div class="lib-card-stack">' + stackChips(s.stack) + '</div>'
+      + '</article>';
+  }
+
+  const listEl = document.getElementById("libList");
+  listEl.innerHTML = LIBS.map(cardHtml).join("");
+
+  listEl.querySelectorAll(".software-card-icon img").forEach(function (img) {
+    img.addEventListener("error", function () {
+      var fb = document.createElement("span");
+      fb.textContent = img.dataset.fb || "?";
+      fb.style.cssText = "font-size:22px;font-weight:700;color:" + (img.dataset.fbcolor || "#f57c00");
+      img.replaceWith(fb);
+    });
+  });
+
+  // 速查过滤
+  const searchEl = document.getElementById("libSearch");
+  const countEl = document.getElementById("libCount");
+  const cards = Array.prototype.slice.call(listEl.querySelectorAll(".software-card"));
+  function applyFilter(q) {
+    q = q.trim().toLowerCase();
+    let shown = 0;
+    cards.forEach(function (c) {
+      const ok = !q || (c.dataset.search || "").toLowerCase().indexOf(q) !== -1;
+      c.style.display = ok ? "" : "none";
+      if (ok) shown++;
+    });
+    countEl.textContent = "共 " + cards.length + " 个库，当前显示 " + shown + " 个";
+  }
+  searchEl.addEventListener("input", function (e) { applyFilter(e.target.value); });
+  applyFilter("");
+
+  // 弹窗
+  const modal = document.getElementById("libModal");
+  const body = document.body;
+
+  function openModal(idx) {
+    const s = LIBS[idx];
+    if (!s) return;
+    document.getElementById("libModalIcon").innerHTML = iconHtml(s, "software-modal-icon-inner");
+    document.getElementById("libModalTitle").textContent = s.name;
+    document.getElementById("libModalTag").textContent = s.tag || "";
+    document.getElementById("libModalDesc").textContent = s.desc || "";
+    document.getElementById("libModalFunction").textContent = s.function || "暂无详细说明。";
+    document.getElementById("libModalStack").innerHTML = stackChips(s.stack) || '<span>—</span>';
+
+    const codeWrap = document.getElementById("libModalCodeWrap");
+    if (s.code) { codeWrap.style.display = ""; document.getElementById("libModalCode").textContent = s.code; }
+    else { codeWrap.style.display = "none"; }
+
+    const stats = [];
+    if (s.language) stats.push(['语言', s.language]);
+    if (s.platform) stats.push(['平台', s.platform]);
+    if (s.license) stats.push(['协议', s.license]);
+    if (s.install) stats.push(['安装', s.install]);
+    if (s.stars) stats.push(['星标', s.stars]);
+    document.getElementById("libModalStats").innerHTML = stats.map(function (p) {
+      return '<div><span>' + esc(p[0]) + '</span><strong>' + esc(p[1]) + '</strong></div>';
+    }).join("");
+
+    const acts = [];
+    if (s.repo) acts.push('<a class="el-button el-button--primary" href="' + esc(s.repo) + '" target="_blank" rel="noopener">查看仓库</a>');
+    if (s.docs) acts.push('<a class="el-button" href="' + esc(s.docs) + '" target="_blank" rel="noopener">官方文档</a>');
+    document.getElementById("libModalActions").innerHTML = acts.join("");
+
+    modal.hidden = false;
+    body.classList.add("software-modal-open");
+    setTimeout(() => modal.classList.add("is-visible"), 10);
+    modal.querySelector(".software-modal-close").focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove("is-visible");
+    setTimeout(() => { modal.hidden = true; body.classList.remove("software-modal-open"); }, 250);
+  }
+
+  listEl.addEventListener("click", function (e) {
+    const item = e.target.closest(".software-card");
+    if (item) openModal(item.dataset.index);
+  });
+  listEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      const item = e.target.closest(".software-card");
+      if (item) { e.preventDefault(); openModal(item.dataset.index); }
+    }
+  });
+  modal.addEventListener("click", function (e) { if (e.target.hasAttribute("data-close")) closeModal(); });
+  modal.querySelector(".software-modal-close").addEventListener("click", closeModal);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) closeModal(); });
+</script>
+<script src="/scripts/metrics.js"></script></body></html>
