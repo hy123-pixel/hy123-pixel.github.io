@@ -22,4 +22,5 @@
   <entry><title>本地模型还有意义吗：开源与端侧 AI 的机会</title><id>https://hy123-pixel.github.io/ai-local/</id><link href="https://hy123-pixel.github.io/ai-local/" /><updated>2024-08-14T08:00:00Z</updated><summary>从隐私、成本和可控性出发，选择适合自己的模型路线。</summary></entry>
   <entry><title>AI 应用上线前：隐私、安全与治理清单</title><id>https://hy123-pixel.github.io/ai-governance/</id><link href="https://hy123-pixel.github.io/ai-governance/" /><updated>2024-08-12T08:00:00Z</updated><summary>把权限、数据、审核和回滚设计进 AI 产品的第一天。</summary></entry>
   <entry><title>主流 AI 模型怎么选：能力、价格与工作场景对比</title><id>https://hy123-pixel.github.io/ai-models/</id><link href="https://hy123-pixel.github.io/ai-models/" /><updated>2024-08-22T08:00:00Z</updated><summary>对比 GPT、Claude、Gemini、DeepSeek，找到适合自己工作的模型。</summary></entry>
+  <entry><title>从小红书「开发者后门」看移动端调试体系：用了哪些服务、为了什么、能借鉴什么</title><id>https://hy123-pixel.github.io/xhs-debug-tool/</id><link href="https://hy123-pixel.github.io/xhs-debug-tool/" /><updated>2026-08-06T08:00:00Z</updated><summary>从知乎曝光的小红书隐藏开发者模式出发，拆解其调试/测试工具链用了哪些服务、各自目的，以及哪些思路值得在日常开发中复用。</summary></entry>
 </feed>
